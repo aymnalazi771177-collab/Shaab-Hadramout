@@ -8,24 +8,46 @@ document.getElementById('alertsBtn').addEventListener('click',()=>notify('لا �
 document.getElementById('matchDetails').addEventListener('click',()=>notify('ستظهر تفاصيل المباراة بعد اعتماد بياناتها الرسمية'));
 document.getElementById('anthemPlay').addEventListener('click',()=>notify('ستضاف أناشيد النادي الرسمية قريباً'));
 document.querySelectorAll('[data-message]').forEach(b=>b.addEventListener('click',()=>notify(b.dataset.message)));
-const players=[
-['حراس المرمى','راشد العلي','1','https://randomuser.me/api/portraits/men/32.jpg'],
-['حراس المرمى','أحمد باحاج','22','https://randomuser.me/api/portraits/men/45.jpg'],
-['حراس المرمى','منير عوض','33','https://randomuser.me/api/portraits/men/51.jpg'],
-['الدفاع','محمد سالم','4','https://randomuser.me/api/portraits/men/12.jpg'],
-['الدفاع','عمر باجندوح','5','https://randomuser.me/api/portraits/men/14.jpg'],
-['الدفاع','خالد باحسن','6','https://randomuser.me/api/portraits/men/18.jpg'],
-['الوسط','سالم عوض','11','https://randomuser.me/api/portraits/men/22.jpg'],
-['الوسط','عبدالله عمر','12','https://randomuser.me/api/portraits/men/26.jpg'],
-['الوسط','أحمد الصافي','14','https://randomuser.me/api/portraits/men/28.jpg'],
-['الهجوم','مازن سالم','7','https://randomuser.me/api/portraits/men/33.jpg'],
-['الهجوم','فهد باوزير','9','https://randomuser.me/api/portraits/men/36.jpg'],
-['الهجوم','علي باحمدان','10','https://randomuser.me/api/portraits/men/39.jpg'],
-['المدرب','المدرب الفني','مدرب','https://randomuser.me/api/portraits/men/56.jpg']
-];
-function renderPlayers(filter){const grid=document.getElementById('playerGrid');grid.innerHTML='';players.filter(p=>p[0]===filter).forEach(p=>{const card=document.createElement('article');card.className='player-card'+(filter==='المدرب'?' coach-card':'');const img=document.createElement('img');img.src=p[3];img.alt='صورة تجريبية';const name=document.createElement('strong');name.textContent=p[1];const number=document.createElement('em');number.textContent=p[2];card.append(img,name,number);grid.append(card)})}
-renderPlayers('حراس المرمى');
-document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#teamTabs button').forEach(x=>x.classList.toggle('selected',x===b));renderPlayers(b.dataset.filter)}));
+let players=[];
+const clubBase='https://shaab-hadramout.pages.dev';
+function renderPlayers(filter){
+ const grid=document.getElementById('playerGrid');
+ grid.innerHTML='';
+ const selected=players.filter(p=>p.position===filter);
+ if(!selected.length){grid.innerHTML='<p class="sample-note">لا توجد بيانات مسجلة لهذا القسم حالياً.</p>';return}
+ selected.forEach(p=>{
+  const card=document.createElement('article');
+  card.className='player-card'+(filter==='المدرب'?' coach-card':'');
+  const img=document.createElement('img');
+  const raw=String(p.image_url||'');
+  img.src=raw.startsWith('/api/media/')?clubBase+raw:(raw||'assets/logo.png');
+  img.alt='صورة '+p.name;
+  img.onerror=()=>{img.onerror=null;img.src='assets/logo.png'};
+  const name=document.createElement('strong');
+  name.textContent=p.name;
+  const number=document.createElement('em');
+  number.textContent=p.position==='المدرب'?'المدرب':(p.number||'');
+  card.append(img,name,number);
+  grid.append(card);
+ });
+}
+document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('#teamTabs button').forEach(x=>x.classList.toggle('selected',x===b));
+ renderPlayers(b.dataset.filter);
+}));
+(async function loadClubPlayers(){
+ try{
+  const response=await fetch(clubBase+'/api/players',{cache:'no-store'});
+  const payload=await response.json();
+  if(!response.ok||!payload.success||!Array.isArray(payload.players))throw new Error('تعذر تحميل بيانات الفريق');
+  players=payload.players;
+  const active=document.querySelector('#teamTabs button.selected')||document.querySelector('#teamTabs button');
+  renderPlayers(active?.dataset.filter||'حراس المرمى');
+ }catch(error){
+  console.warn('Players API unavailable',error);
+  document.getElementById('playerGrid').innerHTML='<p class="sample-note">تعذر تحميل بيانات الفريق حالياً. تحقق من اتصال الإنترنت ثم أعد المحاولة.</p>';
+ }
+})();
 
 // Load club news from D1 and open a readable detail view when a story is tapped.
 (async function loadClubNews() {
