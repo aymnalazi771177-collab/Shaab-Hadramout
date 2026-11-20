@@ -21,7 +21,7 @@ export async function onRequestPost({ request, env }) {
       const ext = allowed.get(file.type);
       if (!ext) return json({ success: false, message: "الصيغ المدعومة: JPG وPNG وWEBP وGIF" }, 415);
       if (file.size > 8 * 1024 * 1024) return json({ success: false, message: "حجم كل صورة يجب ألا يتجاوز 8 ميجابايت" }, 413);
-      const key = `news/${crypto.randomUUID()}.${ext}`;
+      const key = `${crypto.randomUUID()}.${ext}`;
       await env.NEWS_MEDIA.put(key, file.stream(), { httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" } });
       uploaded.push({ url: "/api/media/" + key, key });
     }
