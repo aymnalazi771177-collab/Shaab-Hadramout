@@ -6,15 +6,16 @@
   if (topbar) {
     const login = document.createElement("button");
     login.className = "btn secondary small";
-    login.textContent = getToken() ? "تغيير رمز الإدارة" : "دخول الإدارة";
-    login.onclick = () => {
-      const value = prompt("أدخل رمز الإدارة الذي تم ضبطه في إعدادات Cloudflare:");
-      if (value === null) return;
-      if (!value.trim()) return alert("لم يتم إدخال الرمز.");
-      sessionStorage.setItem(tokenKey, value.trim());
-      login.textContent = "تغيير رمز الإدارة";
-      alert("تم حفظ الرمز لهذه الجلسة.");
+    login.textContent = getToken() ? "تغيير / خروج" : "دخول الإدارة";
+    login.onclick = async () => {
+      if (getToken() && confirm("هل تريد تسجيل الخروج من لوحة الإدارة؟")) { try { await fetch("/api/auth",{method:"DELETE",headers:authHeaders()}); } catch {} sessionStorage.removeItem(tokenKey); location.reload(); return; }
+      const username=prompt("اسم المستخدم للمشرف. اتركه فارغاً للدخول برمز المالك:");
+      if(username===null)return;
+      if(!username.trim()){const value=prompt("أدخل رمز المالك الذي تم ضبطه في إعدادات Cloudflare:");if(value===null||!value.trim())return alert("لم يتم إدخال رمز المالك.");sessionStorage.setItem(tokenKey,value.trim())}
+      else{const password=prompt("أدخل كلمة المرور:");if(password===null||!password)return;try{const r=await fetch("/api/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:username.trim(),password})}),d=await r.json();if(!r.ok||!d.success)throw Error(d.message||"تعذر تسجيل الدخول");sessionStorage.setItem(tokenKey,d.token)}catch(e){return alert(e.message)}}
+      location.reload();
     };
+    (async()=>{if(!getToken())return;try{const r=await fetch("/api/auth",{headers:authHeaders(),cache:"no-store"}),d=await r.json();if(!r.ok||!d.success)throw Error();const label=topbar.querySelectorAll("span")[1];if(label)label.textContent=d.admin.display_name||"مدير النظام";login.textContent="تغيير / خروج"}catch{sessionStorage.removeItem(tokenKey);login.textContent="دخول الإدارة"}})();
     topbar.append(login);
   }
 

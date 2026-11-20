@@ -6,6 +6,7 @@
     matches: "المباريات والنتائج",
     transfers: "إدارة الانتقالات",
     media: "الصور والفيديو",
+    standings: "ترتيب الدوري", anthems: "أناشيد النادي", history: "تاريخ النادي", notifications: "الإشعارات",
     admins: "المشرفون والصلاحيات"
   };
 
@@ -24,6 +25,11 @@
     if (name === "matches" && typeof window.loadMatches === "function") window.loadMatches();
     if (name === "transfers" && typeof window.loadTransfers === "function") window.loadTransfers();
     if (name === "media" && typeof window.loadMedia === "function") window.loadMedia();
+    if (name === "standings" && typeof window.loadStandings === "function") window.loadStandings();
+    if (name === "anthems" && typeof window.loadAnthems === "function") window.loadAnthems();
+    if (name === "history" && typeof window.loadHistory === "function") window.loadHistory();
+    if (name === "notifications" && typeof window.loadNotifications === "function") window.loadNotifications();
+    if (name === "admins" && typeof window.loadAdmins === "function") window.loadAdmins();
   }
 
   document.addEventListener("click", event => {
