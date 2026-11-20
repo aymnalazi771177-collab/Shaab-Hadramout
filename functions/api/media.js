@@ -28,7 +28,10 @@ export async function onRequestPost({ request, env }) {
     }
     return json({ success: true, images: uploaded });
   } catch (error) {
-    console.error("R2 media upload failed:", error);
-    return json({ success: false, message: "تعذر حفظ الصورة في مساحة التخزين. راجع سجل أخطاء الرفع." }, 500);
+    const errorName = error instanceof Error ? error.name : "UploadError";
+    const rawDetail = error instanceof Error ? error.message : String(error);
+    const detail = rawDetail.replace(/Bearer\\s+\\S+/gi, "Bearer [hidden]").replace(/(token|secret|authorization)\\s*[:=]\\s*\\S+/gi, "$1=[hidden]").slice(0, 240);
+    console.error("R2 media upload failed:", errorName, detail);
+    return json({ success: false, message: "تعذر حفظ الصورة في مساحة التخزين.", detail: errorName + ": " + detail }, 500);
   }
 }
