@@ -26,3 +26,18 @@
 .hero-title p span{width:22px}
 .story-arrow{display:flex;align-items:center;justify-content:center;line-height:1;padding:0;font-size:31px}
 #page-news .page-content{padding-top:16px}
+
+/* Player transfers */
+.transfer-page-content{padding:16px 12px 24px}
+.transfer-card{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:11px;box-shadow:0 2px 8px #00000008}
+.transfer-player-image{width:92px;height:112px;flex:0 0 92px;object-fit:cover;object-position:center top;border-radius:11px;background:#f0f0f2}
+.transfer-card-body{min-width:0;flex:1}
+.transfer-tag{display:inline-block;border-radius:20px;padding:4px 9px;font-size:10px;font-weight:800}
+.transfer-tag.incoming{background:#e8f7ee;color:#187342}
+.transfer-tag.outgoing{background:#fff0f0;color:#a90008}
+.transfer-card h3{font-size:17px;font-weight:900;margin:7px 0}
+.transfer-route{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 6px;font-size:12px;font-weight:800;color:#444}
+.transfer-route b{color:var(--red);font-size:16px}
+.transfer-date{display:block;color:#888;font-size:11px;margin-top:4px}
+.transfer-details{font-size:12px;line-height:1.7;color:#555;margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:350px){.transfer-player-image{width:76px;height:94px;flex-basis:76px}.transfer-card{gap:9px;padding:9px}}
