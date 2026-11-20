@@ -27,7 +27,7 @@ function renderPlayers(filter){const grid=document.getElementById('playerGrid');
 renderPlayers('حراس المرمى');
 document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#teamTabs button').forEach(x=>x.classList.toggle('selected',x===b));renderPlayers(b.dataset.filter)}));
 
-// Load club news from the shared D1 database.
+// Load club news from D1 and open a readable detail view when a story is tapped.
 (async function loadClubNews() {
   const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -35,24 +35,70 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
   const dateLabel = value => {
     if (!value) return "";
     const parsed = new Date(String(value).replace(" ", "T") + (String(value).includes("Z") ? "" : "Z"));
-    return Number.isNaN(parsed.getTime()) ? "" : parsed.toLocaleDateString("en-CA");
+    return Number.isNaN(parsed.getTime()) ? "" : parsed.toLocaleDateString("ar");
   };
+  let newsById = new Map();
+  const fallbackImage = "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=800&q=80";
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .news-row{cursor:pointer; -webkit-tap-highlight-color:transparent}
+    .news-row:active{transform:scale(.99)}
+    .news-detail-backdrop{position:fixed;inset:0;z-index:9999;background:rgba(8,12,20,.72);display:flex;align-items:flex-end;justify-content:center;padding:14px}
+    .news-detail-panel{background:#fff;color:#20232a;width:min(100%,620px);max-height:88vh;overflow:auto;border-radius:22px 22px 16px 16px;box-shadow:0 16px 50px #0005;direction:rtl;text-align:right}
+    .news-detail-image{display:block;width:100%;max-height:260px;object-fit:cover;background:#eee}
+    .news-detail-body{padding:18px 18px 24px}
+    .news-detail-title{font-size:21px;line-height:1.55;margin:0 0 8px;color:#17191e}
+    .news-detail-date{display:block;color:#888;font-size:12px;margin-bottom:14px}
+    .news-detail-content{font-size:16px;line-height:2;color:#363a42;white-space:pre-wrap;overflow-wrap:anywhere}
+    .news-detail-close{position:sticky;top:10px;float:left;margin:10px 10px -46px 10px;border:0;border-radius:50%;width:36px;height:36px;background:#b90008;color:#fff;font-size:25px;line-height:1;z-index:2}
+  `;
+  document.head.appendChild(style);
+
+  function openNewsDetail(item) {
+    document.querySelector(".news-detail-backdrop")?.remove();
+    const backdrop = document.createElement("div");
+    backdrop.className = "news-detail-backdrop";
+    const panel = document.createElement("article");
+    panel.className = "news-detail-panel";
+    const image = item.image_url || fallbackImage;
+    panel.innerHTML = '<button class="news-detail-close" aria-label="إغلاق">×</button>' +
+      '<img class="news-detail-image" src="' + escapeHtml(image) + '" alt="">' +
+      '<div class="news-detail-body"><h2 class="news-detail-title">' + escapeHtml(item.title) +
+      '</h2><small class="news-detail-date">' + escapeHtml(dateLabel(item.created_at)) +
+      '</small><div class="news-detail-content">' + escapeHtml(item.content || "لا توجد تفاصيل إضافية لهذا الخبر.") +
+      '</div></div>';
+    backdrop.appendChild(panel);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    panel.querySelector(".news-detail-close").addEventListener("click", close);
+    backdrop.addEventListener("click", event => { if (event.target === backdrop) close(); });
+  }
+
+  document.addEventListener("click", event => {
+    const row = event.target.closest(".news-row[data-news-id]");
+    if (!row) return;
+    const item = newsById.get(String(row.dataset.newsId));
+    if (item) openNewsDetail(item);
+  });
+
   try {
     const response = await fetch("https://shaab-hadramout.pages.dev/api/news", { cache: "no-store" });
     const payload = await response.json();
     if (!response.ok || !payload.success || !Array.isArray(payload.news)) return;
     const items = payload.news;
+    newsById = new Map(items.map(item => [String(item.id), item]));
     const markup = items.map(item => {
-      const image = item.image_url || "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=400&q=80";
-      return '<article class="news-row"><img src="' + escapeHtml(image) + '" alt=""><div><h3>' +
+      const image = item.image_url || fallbackImage;
+      return '<article class="news-row" data-news-id="' + escapeHtml(item.id) + '" role="button" tabindex="0">' +
+        '<img src="' + escapeHtml(image) + '" alt=""><div><h3>' +
         escapeHtml(item.title) + '</h3><small>' + escapeHtml(dateLabel(item.created_at)) +
         '</small></div></article>';
     }).join("");
     const homeNews = document.querySelector("#page-home .news-section");
     const allNews = document.querySelector("#page-news .page-content");
     if (homeNews) {
-      const oldRows = homeNews.querySelectorAll(".news-row");
-      oldRows.forEach(row => row.remove());
+      homeNews.querySelectorAll(".news-row").forEach(row => row.remove());
       homeNews.insertAdjacentHTML("beforeend", markup || '<p class="sample-note">لا توجد أخبار منشورة حالياً.</p>');
     }
     if (allNews) {
