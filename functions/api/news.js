@@ -1,10 +1,28 @@
 function json(data, status = 200) {
-  return Response.json(data, { status });
+  return Response.json(data, {
+    status,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    }
+  });
 }
 
 function authorized(request, env) {
   const token = env.ADMIN_TOKEN;
   return Boolean(token) && request.headers.get("Authorization") === `Bearer ${token}`;
+}
+
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    }
+  });
 }
 
 export async function onRequestGet({ env }) {
