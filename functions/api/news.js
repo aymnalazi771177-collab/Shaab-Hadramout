@@ -1,13 +1,10 @@
+import {isAuthorized} from "../_auth.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization"
   }});
-}
-function authorized(request, env) {
-  const token = env.ADMIN_TOKEN;
-  return Boolean(token) && request.headers.get("Authorization") === `Bearer ${token}`;
 }
 async function ensureImagesTable(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS news_images (id INTEGER PRIMARY KEY AUTOINCREMENT, news_id INTEGER NOT NULL, url TEXT NOT NULL, sort_order INTEGER NOT NULL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)").run();
@@ -48,7 +45,7 @@ export async function onRequestGet({ env }) {
   }
 }
 export async function onRequestPost({ request, env }) {
-  if (!authorized(request, env)) return json({ success: false, message: "غير مصرح" }, 401);
+  if (!await isAuthorized(request, env, "news")) return json({ success: false, message: "غير مصرح" }, 401);
   try {
     await ensureImagesTable(env);
     const body = await request.json();
@@ -66,7 +63,7 @@ export async function onRequestPost({ request, env }) {
   }
 }
 export async function onRequestPut({ request, env }) {
-  if (!authorized(request, env)) return json({ success: false, message: "غير مصرح" }, 401);
+  if (!await isAuthorized(request, env, "news")) return json({ success: false, message: "غير مصرح" }, 401);
   try {
     await ensureImagesTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));
@@ -89,7 +86,7 @@ export async function onRequestPut({ request, env }) {
   }
 }
 export async function onRequestDelete({ request, env }) {
-  if (!authorized(request, env)) return json({ success: false, message: "غير مصرح" }, 401);
+  if (!await isAuthorized(request, env, "news")) return json({ success: false, message: "غير مصرح" }, 401);
   try {
     await ensureImagesTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));

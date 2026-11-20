@@ -1,12 +1,10 @@
+import {isAuthorized} from "../_auth.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization"
   }});
-}
-function authorized(request, env) {
-  return Boolean(env.ADMIN_TOKEN) && request.headers.get("Authorization") === `Bearer ${env.ADMIN_TOKEN}`;
 }
 async function ensureTable(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS matches (
@@ -73,7 +71,7 @@ export async function onRequestGet({ env }) {
   }
 }
 export async function onRequestPost({ request, env }) {
-  if (!authorized(request, env)) return json({ success: false, message: "غير مصرح" }, 401);
+  if (!await isAuthorized(request, env, "matches")) return json({ success: false, message: "غير مصرح" }, 401);
   try {
     await ensureTable(env);
     const data = clean(await request.json());
@@ -86,7 +84,7 @@ export async function onRequestPost({ request, env }) {
   }
 }
 export async function onRequestPut({ request, env }) {
-  if (!authorized(request, env)) return json({ success: false, message: "غير مصرح" }, 401);
+  if (!await isAuthorized(request, env, "matches")) return json({ success: false, message: "غير مصرح" }, 401);
   try {
     await ensureTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));
@@ -102,7 +100,7 @@ export async function onRequestPut({ request, env }) {
   }
 }
 export async function onRequestDelete({ request, env }) {
-  if (!authorized(request, env)) return json({ success: false, message: "غير مصرح" }, 401);
+  if (!await isAuthorized(request, env, "matches")) return json({ success: false, message: "غير مصرح" }, 401);
   try {
     await ensureTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));
