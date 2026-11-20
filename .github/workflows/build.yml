@@ -42,6 +42,7 @@ jobs:
           mkdir -p www/assets
           cp index.html styles.css app.js www/
           cp -R assets/. www/assets/
+          base64 -d assets/club-logo.png.b64 > www/assets/logo.png
 
       - name: Create Android project
         run: npx cap add android
