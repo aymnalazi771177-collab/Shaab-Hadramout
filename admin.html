@@ -85,7 +85,7 @@ const matchStatuses={upcoming:'قادمة',live:'مباشرة',finished:'انت�
 const playerHeaders=()=>({Authorization:'Bearer '+(sessionStorage.getItem('shaab-admin-token')||''),'Content-Type':'application/json'});
 async function loadTeam(){try{const response=await fetch('/api/players',{cache:'no-store'});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.message||'تعذر تحميل بيانات الفريق');team=(data.players||[]).map(p=>[p.name,p.position,p.number,p.image_url,p.id]);render()}catch(error){console.error(error);$('#teamCards').innerHTML='<div class="empty">تعذر تحميل بيانات الفريق. أعد تحميل الصفحة.</div>'}}
 function go(name){if(name==='matches')loadMatches();$('.page').forEach(x=>x.classList.toggle('active',x.id==='section-'+name));$$('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.section===name));$('#pageTitle').textContent=({dashboard:'الرئيسية',news:'إدارة الأخبار',team:'اللاعبون والمدرب',matches:'المباريات والنتائج',admins:'المشرفون والصلاحيات'})[name];$('#sidebar').classList.remove('open')}
-$$('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.section));$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#menuToggle').onclick=()=>$('#sidebar').classList.toggle('open');
+
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function render(){
  $('#statNews').textContent=news.length;$('#statPlayers').textContent=team.length;$('#statMatches').textContent=matches.length;
@@ -137,4 +137,5 @@ $('#editForm').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(
 $('#newsSearch').oninput=render;$('#teamSearch').oninput=render;$('#teamFilter').onchange=render;render();loadTeam();loadMatches();
 </script>
 <script src="admin-news.js"></script>
+<script src="admin-navigation.js"></script>
 </body></html>
