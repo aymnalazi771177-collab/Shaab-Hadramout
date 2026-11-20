@@ -5,6 +5,7 @@
     team: "اللاعبون والمدرب",
     matches: "المباريات والنتائج",
     transfers: "إدارة الانتقالات",
+    media: "الصور والفيديو",
     admins: "المشرفون والصلاحيات"
   };
 
@@ -22,6 +23,7 @@
     if (sidebar) sidebar.classList.remove("open");
     if (name === "matches" && typeof window.loadMatches === "function") window.loadMatches();
     if (name === "transfers" && typeof window.loadTransfers === "function") window.loadTransfers();
+    if (name === "media" && typeof window.loadMedia === "function") window.loadMedia();
   }
 
   document.addEventListener("click", event => {

@@ -15,18 +15,19 @@ export async function onRequestPost({ request, env }) {
     const files = form.getAll("images").filter(item => item && typeof item.arrayBuffer === "function");
     if (!files.length) return json({ success: false, message: "اختر صورة واحدة على الأقل" }, 400);
     if (files.length > 20) return json({ success: false, message: "الحد الأقصى 20 صورة في المرة الواحدة" }, 400);
-    const allowed = new Map([["image/jpeg","jpg"],["image/png","png"],["image/webp","webp"],["image/gif","gif"]]);
+    const allowed = new Map([["image/jpeg",{ext:"jpg",type:"image"}],["image/png",{ext:"png",type:"image"}],["image/webp",{ext:"webp",type:"image"}],["image/gif",{ext:"gif",type:"image"}],["video/mp4",{ext:"mp4",type:"video"}],["video/webm",{ext:"webm",type:"video"}],["video/quicktime",{ext:"mov",type:"video"}]]);
     const uploaded = [];
     for (const file of files) {
-      const ext = allowed.get(file.type);
-      if (!ext) return json({ success: false, message: "الصيغ المدعومة: JPG وPNG وWEBP وGIF" }, 415);
-      if (file.size > 8 * 1024 * 1024) return json({ success: false, message: "حجم كل صورة يجب ألا يتجاوز 8 ميجابايت" }, 413);
-      const key = `${crypto.randomUUID()}.${ext}`;
+      const info = allowed.get(file.type);
+      if (!info) return json({ success: false, message: "الصيغ المدعومة للصور: JPG وPNG وWEBP وGIF، وللفيديو: MP4 وWEBM وMOV" }, 415);
+      const limit = info.type === "video" ? 50 * 1024 * 1024 : 8 * 1024 * 1024;
+      if (file.size > limit) return json({ success: false, message: info.type === "video" ? "حجم كل فيديو يجب ألا يتجاوز 50 ميجابايت" : "حجم كل صورة يجب ألا يتجاوز 8 ميجابايت" }, 413);
+      const key = `${crypto.randomUUID()}.${info.ext}`;
       const bytes = await file.arrayBuffer();
       await env.NEWS_MEDIA.put(key, bytes, { httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" } });
-      uploaded.push({ url: new URL("/api/media/" + key, request.url).href, key });
+      uploaded.push({ url: new URL("/api/media/" + key, request.url).href, key, media_type: info.type, name: String(file.name || "") });
     }
-    return json({ success: true, images: uploaded });
+    return json({ success: true, media: uploaded, images: uploaded.filter(item => item.media_type === "image") });
   } catch (error) {
     const errorName = error instanceof Error ? error.name : "UploadError";
     const rawDetail = error instanceof Error ? error.message : String(error);
