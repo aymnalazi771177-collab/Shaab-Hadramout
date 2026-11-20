@@ -14,3 +14,15 @@
 .app-header{direction:ltr}
 .hero-title{direction:ltr}
 .hero-title>div{direction:rtl;text-align:right}
+
+
+/* Mobile layout refinements from device screenshots */
+.home-hero{height:225px}
+.hero-title{inset:43px 16px 0;justify-content:space-between;gap:12px}
+.hero-title img{width:96px;height:116px;flex:0 0 96px}
+.hero-title>div{flex:1;min-width:0;text-align:right}
+.hero-title h1{font-size:25px;line-height:1.25;margin:0 0 6px}
+.hero-title p{font-size:14px;gap:7px}
+.hero-title p span{width:22px}
+.story-arrow{display:flex;align-items:center;justify-content:center;line-height:1;padding:0;font-size:31px}
+#page-news .page-content{padding-top:16px}
