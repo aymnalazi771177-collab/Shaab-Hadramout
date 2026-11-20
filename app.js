@@ -38,7 +38,7 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
     return Number.isNaN(parsed.getTime()) ? "" : parsed.toLocaleDateString("en-CA");
   };
   try {
-    const response = await fetch("/api/news", { cache: "no-store" });
+    const response = await fetch("https://shaab-hadramout.pages.dev/api/news", { cache: "no-store" });
     const payload = await response.json();
     if (!response.ok || !payload.success || !Array.isArray(payload.news)) return;
     const items = payload.news;
