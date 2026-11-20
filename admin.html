@@ -54,10 +54,10 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
   <section class="page active" id="section-dashboard">
    <div class="welcome"><div><h2>مرحباً بك في لوحة الإدارة</h2><p>إدارة محتوى نادي شعب حضرموت من مكان واحد.</p></div><button class="btn" data-go="news">＋ إضافة خبر جديد</button></div>
    <div class="stats">
-    <div class="stat"><div class="stat-top"><span>الأخبار</span><span class="stat-icon">▤</span></div><strong id="statNews">3</strong></div>
-    <div class="stat"><div class="stat-top"><span>اللاعبون</span><span class="stat-icon">♟</span></div><strong id="statPlayers">12</strong></div>
-    <div class="stat"><div class="stat-top"><span>المباريات</span><span class="stat-icon">⚽</span></div><strong id="statMatches">2</strong></div>
-    <div class="stat"><div class="stat-top"><span>المشرفون</span><span class="stat-icon">♙</span></div><strong>1</strong></div>
+    <div class="stat"><div class="stat-top"><span>الأخبار</span><span class="stat-icon">▤</span></div><strong id="statNews">0</strong></div>
+    <div class="stat"><div class="stat-top"><span>اللاعبون</span><span class="stat-icon">♟</span></div><strong id="statPlayers">0</strong></div>
+    <div class="stat"><div class="stat-top"><span>المباريات</span><span class="stat-icon">⚽</span></div><strong id="statMatches">0</strong></div>
+    <div class="stat"><div class="stat-top"><span>المشرفون</span><span class="stat-icon">♙</span></div><strong id="statAdmins">1</strong></div>
    </div>
    <div class="panel"><div class="panel-head"><h3>آخر الأخبار المضافة</h3><button class="btn secondary small" data-go="news">عرض الكل</button></div><div class="table-wrap"><table><thead><tr><th>عنوان الخبر</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody id="recentNews"></tbody></table></div></div>
   </section>
@@ -101,7 +101,7 @@ function go(name){if(name==='matches')loadMatches();if(name==='transfers')loadTr
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function render(){
  $('#statNews').textContent=news.length;$('#statPlayers').textContent=team.length;$('#statMatches').textContent=matches.length;
- $('#recentNews').innerHTML=news.slice(0,4).map(n=>'<tr><td>'+safe(n.title)+'</td><td>'+safe(n.date)+'</td><td><span class="status">محفوظ محلياً</span></td></tr>').join('')||'<tr><td colspan="3" class="empty">لا توجد أخبار</td></tr>';
+ $('#recentNews').innerHTML=news.slice(0,4).map(n=>'<tr><td>'+safe(n.title)+'</td><td>'+safe(n.date)+'</td><td><span class="status">منشور</span></td></tr>').join('')||'<tr><td colspan="3" class="empty">لا توجد أخبار</td></tr>';
  const q=($('#newsSearch')?.value||'').toLowerCase();$('#newsTable').innerHTML=news.filter(n=>n.title.toLowerCase().includes(q)).map(n=>'<tr><td>'+safe(n.title)+'</td><td>'+safe(n.date)+'</td><td><button class="btn secondary small" onclick="editNews('+n.id+')">تعديل</button> <button class="btn danger small" onclick="delNews('+n.id+')">حذف</button></td></tr>').join('')||'<tr><td colspan="3" class="empty">لا توجد أخبار</td></tr>';
  const tq=($('#teamSearch')?.value||'').toLowerCase(),tf=$('#teamFilter')?.value||'';$('#teamCards').innerHTML=team.map((p,i)=>({p,i})).filter(x=>x.p[0].toLowerCase().includes(tq)&&(!tf||x.p[1]===tf)).map(x=>'<div class="item-card">'+(x.p[3]?'<img src="'+safe(x.p[3])+'" alt="">':'<span class="avatar">♟</span>')+'<div style="flex:1"><b>'+safe(x.p[0])+'</b><small>'+safe(x.p[1])+(x.p[2]?' · رقم '+safe(x.p[2]):'')+'</small></div><button class="btn secondary small" onclick="editPlayer('+x.i+')">تعديل</button> <button class="btn danger small" onclick="delPlayer('+x.i+')">حذف</button></div>').join('')||'<div class="empty">لا توجد بيانات مسجلة في قاعدة البيانات بعد</div>';
  $('#matchesTable').innerHTML=matches.map(m=>'<tr><td><div style="display:flex;align-items:center;gap:8px">'+(m.opponent_logo_url?'<img src="'+safe(m.opponent_logo_url)+'" style="width:34px;height:34px;object-fit:contain">':'')+'<b>'+safe(m.opponent)+'</b></div></td><td>'+safe(m.match_date)+'</td><td>'+safe(m.match_time)+'</td><td>'+(m.status==='finished'?safe(m.home_score)+' - '+safe(m.away_score):matchStatuses[m.status]||'قادمة')+'</td><td><button class="btn secondary small" onclick="editMatch('+m.id+')">تعديل</button> <button class="btn danger small" onclick="delMatch('+m.id+')">حذف</button></td></tr>').join('')||'<tr><td colspan="5" class="empty">لا توجد مباريات محفوظة</td></tr>';
