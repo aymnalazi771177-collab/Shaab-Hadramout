@@ -62,6 +62,7 @@
       if(admin.owner||permissions.includes("*"))return;
       const map={news:"news",team:"team",matches:"matches",standings:"standings",transfers:"transfers",media:"media",anthems:"anthems",history:"history",notifications:"notifications",admins:"admins"};
       document.querySelectorAll(".nav button[data-section]").forEach(button=>{const key=button.dataset.section;if(key!=="dashboard"&&!permissions.includes(map[key]))button.hidden=true});
+      document.querySelectorAll("[data-go]").forEach(button=>{if(!permissions.includes(button.dataset.go))button.hidden=true});
       const active=document.querySelector(".nav button.active");
       if(active&&active.hidden)document.querySelector('.nav button[data-section="dashboard"]')?.click();
       const name=document.querySelector(".topbar .profile span:nth-child(2)");
