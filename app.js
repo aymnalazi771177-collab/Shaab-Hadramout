@@ -1,7 +1,8 @@
-const pages=['home','news','team','matches','more'];const nav=[...document.querySelectorAll('.nav-item')];const toast=document.getElementById('toast');
+const pages=['home','news','team','matches','more','transfers'];const nav=[...document.querySelectorAll('.nav-item')];const toast=document.getElementById('toast');
 function notify(message){toast.textContent=message;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),2300)}
-function showPage(name){pages.forEach(p=>document.getElementById('page-'+p).classList.toggle('active',p===name));nav.forEach(b=>b.classList.toggle('active',b.dataset.page===name));document.body.classList.toggle('page-home',name==='home');if(name==='team')loadClubPlayers();window.scrollTo({top:0,behavior:'smooth'})}
+function showPage(name){pages.forEach(p=>document.getElementById('page-'+p).classList.toggle('active',p===name));nav.forEach(b=>b.classList.toggle('active',b.dataset.page===(name==='transfers'?'more':name)));document.body.classList.toggle('page-home',name==='home');if(name==='team')loadClubPlayers();if(name==='transfers')loadClubTransfers();window.scrollTo({top:0,behavior:'smooth'})}
 nav.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+document.querySelectorAll('[data-open-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.openPage)));
 document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>showPage('home')));
 document.getElementById('menuBtn').addEventListener('click',()=>showPage('more'));
 document.getElementById('alertsBtn').addEventListener('click',()=>notify('لا توجد إشعارات جديدة حالياً'));
@@ -63,6 +64,27 @@ function renderClubMatches(items){
  if(upcomingBox){if(!upcoming)upcomingBox.innerHTML='<article class="upcoming-card"><p class="sample-note">لا توجد مباراة قادمة معلنة حالياً.</p></article>';else{const club={name:'شعب حضرموت',logo:clubImageUrl(upcoming.home_logo_url)},rival={name:upcoming.opponent,logo:clubImageUrl(upcoming.opponent_logo_url)};const left=Number(upcoming.is_home)===0?rival:club,right=Number(upcoming.is_home)===0?club:rival;upcomingBox.innerHTML='<article class="upcoming-card"><div class="versus-banner"><div class="versus-teams"><div><img src="'+escapeMatchHtml(left.logo)+'" alt=""><b>'+escapeMatchHtml(left.name)+'</b></div><strong>VS</strong><div><img src="'+escapeMatchHtml(right.logo)+'" alt=""><b>'+escapeMatchHtml(right.name)+'</b></div></div></div><div class="match-meta"><span>'+escapeMatchHtml(matchDateLabel(upcoming.match_date))+'</span><i></i><span>'+escapeMatchHtml(upcoming.match_time||'يحدد لاحقاً')+'</span></div><p style="text-align:center;margin:8px 0;color:#777">'+escapeMatchHtml([upcoming.competition,upcoming.venue].filter(Boolean).join(' · '))+'</p><button class="details-btn" data-match-details data-notes="'+escapeMatchHtml(upcoming.notes||'')+'">تفاصيل المباراة</button></article>'}} 
  if(resultsBox)resultsBox.innerHTML=finished.length?finished.map(m=>{const club={name:'شعب حضرموت',logo:clubImageUrl(m.home_logo_url)},rival={name:m.opponent,logo:clubImageUrl(m.opponent_logo_url)};const left=Number(m.is_home)===0?rival:club,right=Number(m.is_home)===0?club:rival;const score=Number(m.is_home)===0?String(m.away_score??'0')+' - '+String(m.home_score??'0'):String(m.home_score??'0')+' - '+String(m.away_score??'0');return '<article class="result-card"><div><div class="result-crest"><img src="'+escapeMatchHtml(left.logo)+'" alt=""></div><b>'+escapeMatchHtml(left.name)+'</b></div><strong>'+escapeMatchHtml(score)+'</strong><div><div class="opponent-crest small"><img src="'+escapeMatchHtml(right.logo)+'" alt=""></div><b>'+escapeMatchHtml(right.name)+'</b></div></article>'}).join(''):'<p class="sample-note">لا توجد نتائج مسجلة حتى الآن.</p>';
 }
+
+function transferDateLabel(value){if(!value)return '';const d=new Date(String(value)+'T00:00:00');return Number.isNaN(d.getTime())?value:d.toLocaleDateString('ar',{year:'numeric',month:'long',day:'numeric'})}
+async function loadClubTransfers(){
+ const box=document.getElementById('transferList');if(!box)return;
+ box.innerHTML='<p class="sample-note">جارٍ تحميل الانتقالات...</p>';
+ try{
+  const response=await fetch(clubBase+'/api/transfers?refresh='+Date.now(),{cache:'no-store'});
+  const data=await response.json();
+  if(!response.ok||!data.success||!Array.isArray(data.transfers))throw new Error('تعذر تحميل الانتقالات');
+  if(!data.transfers.length){box.innerHTML='<p class="sample-note">لا توجد انتقالات معلنة حالياً.</p>';return}
+  box.innerHTML=data.transfers.map(t=>{
+   const incoming=t.direction==='incoming';
+   const type=t.transfer_type==='loan'?'إعارة':'انتقال نهائي';
+   const image=clubImageUrl(t.image_url);
+   const from=t.from_club|| (incoming?'ناديه السابق':'شعب حضرموت');
+   const to=t.to_club|| (incoming?'شعب حضرموت':'النادي الجديد');
+   return '<article class="transfer-card"><img class="transfer-player-image" src="'+escapeMatchHtml(image)+'" alt="صورة '+escapeMatchHtml(t.player_name)+'" onerror="this.onerror=null;this.src=\'assets/logo.png\'"><div class="transfer-card-body"><span class="transfer-tag '+(incoming?'incoming':'outgoing')+'">'+(incoming?'وافد إلى النادي':'مغادر من النادي')+' · '+type+'</span><h3>'+escapeMatchHtml(t.player_name)+'</h3><p class="transfer-route"><span>'+escapeMatchHtml(from)+'</span><b>←</b><span>'+escapeMatchHtml(to)+'</span></p>'+(t.transfer_date?'<small class="transfer-date">'+escapeMatchHtml(transferDateLabel(t.transfer_date))+'</small>':'')+(t.details?'<p class="transfer-details">'+escapeMatchHtml(t.details)+'</p>':'')+'</div></article>';
+  }).join('');
+ }catch(error){console.warn('Transfers API unavailable',error);box.innerHTML='<p class="sample-note">تعذر تحميل الانتقالات حالياً. حاول مرة أخرى لاحقاً.</p>'}
+}
+
 function escapeMatchHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function loadClubMatches(){const box=document.getElementById('upcomingMatchCard');try{const response=await fetch(clubBase+'/api/matches?refresh='+Date.now(),{cache:'no-store'});const data=await response.json();if(!response.ok||!data.success||!Array.isArray(data.matches))throw new Error('تعذر تحميل المباريات');renderClubMatches(data.matches)}catch(error){console.warn('Matches API unavailable',error);if(box)box.innerHTML='<article class="upcoming-card"><p class="sample-note">تعذر تحميل المباريات حالياً. تحقق من اتصال الإنترنت.</p></article>';const results=document.getElementById('recentResults');if(results)results.innerHTML='<p class="sample-note">تعذر تحميل النتائج حالياً.</p>'}}
 
