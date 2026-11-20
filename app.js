@@ -1,6 +1,6 @@
 const pages=['home','news','team','matches','more'];const nav=[...document.querySelectorAll('.nav-item')];const toast=document.getElementById('toast');
 function notify(message){toast.textContent=message;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),2300)}
-function showPage(name){pages.forEach(p=>document.getElementById('page-'+p).classList.toggle('active',p===name));nav.forEach(b=>b.classList.toggle('active',b.dataset.page===name));document.body.classList.toggle('page-home',name==='home');window.scrollTo({top:0,behavior:'smooth'})}
+function showPage(name){pages.forEach(p=>document.getElementById('page-'+p).classList.toggle('active',p===name));nav.forEach(b=>b.classList.toggle('active',b.dataset.page===name));document.body.classList.toggle('page-home',name==='home');if(name==='team')loadClubPlayers();window.scrollTo({top:0,behavior:'smooth'})}
 nav.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>showPage('home')));
 document.getElementById('menuBtn').addEventListener('click',()=>showPage('more'));
@@ -35,9 +35,12 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
  document.querySelectorAll('#teamTabs button').forEach(x=>x.classList.toggle('selected',x===b));
  renderPlayers(b.dataset.filter);
 }));
-(async function loadClubPlayers(){
+async function loadClubPlayers(){
+ const grid=document.getElementById('playerGrid');
+ if(!grid)return;
+ grid.innerHTML='<p class="sample-note">جارٍ تحميل بيانات الفريق...</p>';
  try{
-  const response=await fetch(clubBase+'/api/players',{cache:'no-store'});
+  const response=await fetch(clubBase+'/api/players?refresh='+Date.now(),{cache:'no-store'});
   const payload=await response.json();
   if(!response.ok||!payload.success||!Array.isArray(payload.players))throw new Error('تعذر تحميل بيانات الفريق');
   players=payload.players;
@@ -45,9 +48,10 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
   renderPlayers(active?.dataset.filter||'حراس المرمى');
  }catch(error){
   console.warn('Players API unavailable',error);
-  document.getElementById('playerGrid').innerHTML='<p class="sample-note">تعذر تحميل بيانات الفريق حالياً. تحقق من اتصال الإنترنت ثم أعد المحاولة.</p>';
+  grid.innerHTML='<p class="sample-note">تعذر تحميل بيانات الفريق حالياً. تحقق من اتصال الإنترنت ثم أعد المحاولة.</p>';
  }
-})();
+}
+
 
 // Load club news from D1 and open a readable detail view when a story is tapped.
 (async function loadClubNews() {
