@@ -46,7 +46,7 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
     .news-row:active{transform:scale(.99)}
     .news-detail-backdrop{position:fixed;inset:0;z-index:9999;background:rgba(8,12,20,.72);display:flex;align-items:flex-end;justify-content:center;padding:14px}
     .news-detail-panel{background:#fff;color:#20232a;width:min(100%,620px);max-height:88vh;overflow:auto;border-radius:22px 22px 16px 16px;box-shadow:0 16px 50px #0005;direction:rtl;text-align:right}
-    .news-detail-image{display:block;width:100%;max-height:260px;object-fit:cover;background:#eee}
+    .news-detail-image{display:block;width:100%;max-height:260px;object-fit:cover;background:#eee}\n    .news-detail-gallery{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x mandatory;padding:12px 12px 4px;-webkit-overflow-scrolling:touch}\n    .news-detail-gallery img{flex:0 0 86%;width:86%;height:250px;object-fit:cover;border-radius:13px;background:#eee;scroll-snap-align:center}
     .news-detail-body{padding:18px 18px 24px}
     .news-detail-title{font-size:21px;line-height:1.55;margin:0 0 8px;color:#17191e}
     .news-detail-date{display:block;color:#888;font-size:12px;margin-bottom:14px}
@@ -61,9 +61,15 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
     backdrop.className = "news-detail-backdrop";
     const panel = document.createElement("article");
     panel.className = "news-detail-panel";
-    const image = item.image_url || fallbackImage;
+    const galleryImages = Array.isArray(item.images) && item.images.length
+      ? item.images.map(entry => typeof entry === "string" ? entry : entry.url).filter(Boolean)
+      : (item.image_url ? [item.image_url] : []);
+    const gallery = galleryImages.length
+      ? '<div class="news-detail-gallery">' + galleryImages.map((url, index) =>
+          '<img src="' + escapeHtml(url) + '" alt="صورة الخبر ' + (index + 1) + '" loading="lazy">').join("") + '</div>'
+      : '<img class="news-detail-image" src="' + escapeHtml(fallbackImage) + '" alt="">';
     panel.innerHTML = '<button class="news-detail-close" aria-label="إغلاق">×</button>' +
-      '<img class="news-detail-image" src="' + escapeHtml(image) + '" alt="">' +
+      gallery +
       '<div class="news-detail-body"><h2 class="news-detail-title">' + escapeHtml(item.title) +
       '</h2><small class="news-detail-date">' + escapeHtml(dateLabel(item.created_at)) +
       '</small><div class="news-detail-content">' + escapeHtml(item.content || "لا توجد تفاصيل إضافية لهذا الخبر.") +
@@ -89,7 +95,7 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
     const items = payload.news;
     newsById = new Map(items.map(item => [String(item.id), item]));
     const markup = items.map(item => {
-      const image = item.image_url || fallbackImage;
+      const image = (Array.isArray(item.images) && item.images.length ? (typeof item.images[0] === "string" ? item.images[0] : item.images[0].url) : item.image_url) || fallbackImage;
       return '<article class="news-row" data-news-id="' + escapeHtml(item.id) + '" role="button" tabindex="0">' +
         '<img src="' + escapeHtml(image) + '" alt=""><div><h3>' +
         escapeHtml(item.title) + '</h3><small>' + escapeHtml(dateLabel(item.created_at)) +
