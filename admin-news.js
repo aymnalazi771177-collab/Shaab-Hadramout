@@ -44,14 +44,27 @@
   function drawImageList() {
     const holder = document.getElementById("newsImagesPreview");
     if (!holder) return;
-    holder.innerHTML = imageItems.map((item, index) =>
+    const savedRows = imageItems.map((item, index) =>
       '<div style="display:flex;align-items:center;gap:9px;border:1px solid #e8e9ee;border-radius:10px;padding:7px;margin-top:7px">' +
       '<img src="' + escape(item.url) + '" style="width:58px;height:52px;object-fit:cover;border-radius:7px" alt="">' +
       '<span style="flex:1;font-size:12px;overflow-wrap:anywhere">' + (index === 0 ? "الصورة الرئيسية" : "صورة " + (index + 1)) + '</span>' +
       '<button type="button" class="btn danger small" data-remove-image="' + index + '">حذف</button></div>'
     ).join("");
+    const localRows = selectedFiles.map((entry, index) =>
+      '<div style="display:flex;align-items:center;gap:9px;border:1px dashed #bd0008;border-radius:10px;padding:7px;margin-top:7px">' +
+      '<img src="' + escape(entry.preview) + '" style="width:58px;height:52px;object-fit:cover;border-radius:7px" alt="">' +
+      '<span style="flex:1;font-size:12px;overflow-wrap:anywhere">' + escape(entry.file.name) + ' · جاهزة للرفع</span>' +
+      '<button type="button" class="btn danger small" data-remove-local-image="' + index + '">حذف</button></div>'
+    ).join("");
+    holder.innerHTML = '<div style="font-size:12px;color:#555;margin-bottom:8px">الصور المضافة: <b>' + (imageItems.length + selectedFiles.length) + ' / 20</b> — أول صورة ستكون الرئيسية</div>' +
+      (savedRows + localRows || '<small style="color:#888">لم تتم إضافة صور بعد.</small>');
     holder.querySelectorAll("[data-remove-image]").forEach(button => button.onclick = () => {
       imageItems.splice(Number(button.dataset.removeImage), 1);
+      drawImageList();
+    });
+    holder.querySelectorAll("[data-remove-local-image]").forEach(button => button.onclick = () => {
+      const removed = selectedFiles.splice(Number(button.dataset.removeLocalImage), 1)[0];
+      if (removed?.preview) URL.revokeObjectURL(removed.preview);
       drawImageList();
     });
   }
@@ -65,18 +78,30 @@
     ], item || {});
     const fields = document.getElementById("formFields");
     fields.insertAdjacentHTML("beforeend",
-      '<div class="field"><label>رفع صور من الجهاز (يمكن اختيار عدة صور)</label><input id="newsImageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple><small style="color:#777">JPG وPNG وWEBP وGIF — الحد الأقصى 8 ميجابايت للصورة</small></div>' +
+      '<div class="field"><label>رفع صور من الجهاز</label><input id="newsImageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple><small style="color:#777">يمكن تحديد عدة صور دفعة واحدة، أو فتح الاختيار أكثر من مرة لإضافة صور أخرى. JPG وPNG وWEBP وGIF — الحد الأقصى 8 ميجابايت للصورة.</small></div>' +
       '<div class="field"><label>إضافة صورة من رابط</label><div style="display:flex;gap:7px"><input id="newsImageUrl" type="url" placeholder="https://example.com/photo.jpg"><button type="button" class="btn secondary" id="addNewsImageUrl">إضافة</button></div></div>' +
       '<div class="field"><label>صور الخبر (أول صورة هي الرئيسية)</label><div id="newsImagesPreview"></div></div>'
     );
     document.getElementById("newsImageFiles").onchange = event => {
-      selectedFiles = [...event.target.files];
-      if (selectedFiles.length > 20) {
-        alert("يمكن اختيار 20 صورة كحد أقصى في المرة الواحدة.");
-        selectedFiles = selectedFiles.slice(0,20);
+      const incoming = [...event.target.files];
+      const allowedTypes = ["image/jpeg","image/png","image/webp","image/gif"];
+      for (const file of incoming) {
+        if (!allowedTypes.includes(file.type)) {
+          alert("توجد صيغة صورة غير مدعومة: " + file.name);
+          continue;
+        }
+        if (file.size > 8 * 1024 * 1024) {
+          alert("حجم الصورة أكبر من 8 ميجابايت: " + file.name);
+          continue;
+        }
+        if (imageItems.length + selectedFiles.length >= 20) {
+          alert("الحد الأقصى للخبر 20 صورة.");
+          break;
+        }
+        selectedFiles.push({file, preview:URL.createObjectURL(file)});
       }
-      const label = document.getElementById("newsImageFiles");
-      if (label) label.title = selectedFiles.map(file => file.name).join("، ");
+      event.target.value = "";
+      drawImageList();
     };
     document.getElementById("addNewsImageUrl").onclick = () => {
       const input = document.getElementById("newsImageUrl");
@@ -85,6 +110,7 @@
         const parsed = new URL(value);
         if (!["http:","https:"].includes(parsed.protocol)) throw new Error();
       } catch { return alert("أدخل رابط صورة صحيحاً يبدأ بـ https:// أو http://"); }
+      if (imageItems.length + selectedFiles.length >= 20) return alert("الحد الأقصى للخبر 20 صورة.");
       imageItems.push({url:value});
       input.value = "";
       drawImageList();
@@ -120,11 +146,13 @@
     try {
       if (selectedFiles.length) {
         const uploadForm = new FormData();
-        selectedFiles.forEach(file => uploadForm.append("images", file));
+        selectedFiles.forEach(entry => uploadForm.append("images", entry.file));
         const uploadResponse = await fetch("/api/media", { method:"POST", headers:authHeaders(), body:uploadForm });
         const uploadData = await uploadResponse.json();
         if (!uploadResponse.ok || !uploadData.success) throw new Error(uploadData.message || "تعذر رفع الصور");
         imageItems.push(...uploadData.images.map(image => ({url:image.url})));
+        selectedFiles.forEach(entry => URL.revokeObjectURL(entry.preview));
+        selectedFiles = [];
       }
       values.images = imageItems.map(image => ({url:image.url}));
       values.image_url = imageItems[0]?.url || "";
