@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: shaab-hadramout-android
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build Android APK
