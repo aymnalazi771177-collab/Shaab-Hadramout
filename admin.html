@@ -105,4 +105,6 @@ window.editMatch=id=>{const m=matches.find(x=>x.id===id);openModal('match','تع
 window.delMatch=id=>{if(confirm('حذف المباراة؟')){matches=matches.filter(x=>x.id!==id);save()}};
 $('#editForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());if(kind==='news'){if(editing){news=news.map(n=>n.id===editing?{...n,...d}:n)}else news.unshift({id:Date.now(),...d})}if(kind==='team'){if(editing!==null)team[editing]=[d.name,d.position,d.number];else team.push([d.name,d.position,d.number])}if(kind==='match'){if(editing)matches=matches.map(m=>m.id===editing?{...m,...d}:m);else matches.unshift({id:Date.now(),...d})}save();closeModal();e.target.reset()};
 $('#newsSearch').oninput=render;$('#teamSearch').oninput=render;$('#teamFilter').onchange=render;render();
-</script></body></html>
+</script>
+<script src="admin-news.js"></script>
+</body></html>
