@@ -95,18 +95,41 @@ function render(){
  $('#matchesTable').innerHTML=matches.map(m=>'<tr><td>'+safe(m.opponent)+'</td><td>'+safe(m.date)+'</td><td>'+safe(m.time)+'</td><td>'+safe(m.score)+'</td><td><button class="btn secondary small" onclick="editMatch('+m.id+')">تعديل</button> <button class="btn danger small" onclick="delMatch('+m.id+')">حذف</button></td></tr>').join('')||'<tr><td colspan="5" class="empty">لا توجد مباريات</td></tr>';
 }
 function openModal(type,title,fields,data={}){kind=type;editing=data.id??null;$('#modalTitle').textContent=title;$('#formFields').innerHTML=fields.map(f=>'<div class="field"><label>'+f.label+'</label>'+(f.options?'<select name="'+f.name+'">'+f.options.map(o=>'<option '+(data[f.name]===o?'selected':'')+'>'+safe(o)+'</option>').join('')+'</select>':'<input name="'+f.name+'" '+(f.type?'type="'+f.type+'"':'')+' value="'+safe(data[f.name]||'')+'" '+(f.required?'required':'')+' placeholder="'+(f.placeholder||'')+'">')+'</div>').join('');$('#modalBack').classList.add('open')}
+function configurePlayerImage(currentUrl=''){
+ const holder=document.createElement('div');
+ holder.className='field';
+ holder.innerHTML='<label>صورة اللاعب من الجهاز</label><input id="playerImageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><small style="color:#777">اختر صورة واضحة JPG أو PNG أو WEBP أو GIF، بحد أقصى 8 ميجابايت.</small><div id="playerImagePreview" style="margin-top:8px"></div>';
+ $('#formFields').appendChild(holder);
+ const preview=$('#playerImagePreview');
+ const show=url=>{preview.innerHTML=url?'<img src="'+safe(url)+'" alt="معاينة صورة اللاعب" style="width:105px;height:105px;object-fit:cover;border-radius:12px;border:1px solid #ddd">':'<small style="color:#888">لم يتم اختيار صورة</small>'};
+ show(currentUrl);
+ $('#playerImageFile').onchange=e=>{
+  const file=e.target.files?.[0];
+  if(!file){show(currentUrl);return}
+  if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type)){e.target.value='';show(currentUrl);return alert('صيغة الصورة غير مدعومة.')}
+  if(file.size>8*1024*1024){e.target.value='';show(currentUrl);return alert('حجم الصورة يجب ألا يتجاوز 8 ميجابايت.')}
+  show(URL.createObjectURL(file));
+ };
+}
+async function uploadPlayerImage(file){
+ const formData=new FormData();formData.append('images',file);
+ const response=await fetch('/api/media',{method:'POST',headers:playerHeaders(),body:formData});
+ const data=await response.json();
+ if(!response.ok||!data.success||!data.images?.[0]?.url)throw new Error(data.message||'تعذر رفع صورة اللاعب');
+ return data.images[0].url;
+}
 function closeModal(){$('#modalBack').classList.remove('open')}
 $('#cancelModal').onclick=closeModal;$('#modalBack').onclick=e=>{if(e.target.id==='modalBack')closeModal()};
 $('#addNews').onclick=()=>openModal('news','إضافة خبر',[{name:'title',label:'عنوان الخبر',required:true},{name:'date',label:'التاريخ',placeholder:'2026/11/20'}]);
 window.editNews=id=>{const n=news.find(x=>x.id===id);openModal('news','تعديل الخبر',[{name:'title',label:'عنوان الخبر',required:true},{name:'date',label:'التاريخ'}],n)};
 window.delNews=id=>{if(confirm('هل تريد حذف هذا الخبر؟')){news=news.filter(x=>x.id!==id);save()}};
-$('#addPlayer').onclick=()=>openModal('team','إضافة لاعب أو مدرب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'},{name:'image_url',label:'رابط صورة اللاعب (اختياري)',type:'url'}]);
-window.editPlayer=i=>{const p=team[i];openModal('team','تعديل بيانات اللاعب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'},{name:'image_url',label:'رابط صورة اللاعب (اختياري)',type:'url'}],{id:p[4],name:p[0],position:p[1],number:p[2],image_url:p[3]||''})};
+$('#addPlayer').onclick=()=>{openModal('team','إضافة لاعب أو مدرب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'},{name:'image_url',label:'رابط الصورة (اختياري)',type:'url'}]);configurePlayerImage()};
+window.editPlayer=i=>{const p=team[i];openModal('team','تعديل بيانات اللاعب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'},{name:'image_url',label:'رابط الصورة (اختياري)',type:'url'}],{id:p[4],name:p[0],position:p[1],number:p[2],image_url:p[3]||''});configurePlayerImage(p[3]||'')};
 window.delPlayer=async i=>{if(!confirm('حذف هذا اللاعب نهائياً؟'))return;try{const response=await fetch('/api/players?id='+encodeURIComponent(team[i][4]),{method:'DELETE',headers:playerHeaders()});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.message||'تعذر الحذف');await loadTeam()}catch(error){alert(error.message)}};
 $('#addMatch').onclick=()=>openModal('match','إضافة مباراة',[{name:'opponent',label:'الفريق المنافس',required:true},{name:'date',label:'التاريخ'},{name:'time',label:'الوقت'},{name:'score',label:'النتيجة',placeholder:'مثال: 2 - 1'}]);
 window.editMatch=id=>{const m=matches.find(x=>x.id===id);openModal('match','تعديل المباراة',[{name:'opponent',label:'الفريق المنافس',required:true},{name:'date',label:'التاريخ'},{name:'time',label:'الوقت'},{name:'score',label:'النتيجة'}],m)};
 window.delMatch=id=>{if(confirm('حذف المباراة؟')){matches=matches.filter(x=>x.id!==id);save()}};
-$('#editForm').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());if(kind==='team'){try{const isEdit=editing!==null;const response=await fetch(isEdit?'/api/players?id='+encodeURIComponent(editing):'/api/players',{method:isEdit?'PUT':'POST',headers:playerHeaders(),body:JSON.stringify(d)});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.message||'تعذر حفظ بيانات اللاعب');closeModal();e.target.reset();await loadTeam();return}catch(error){alert(error.message);return}}if(kind==='news'){if(editing){news=news.map(n=>n.id===editing?{...n,...d}:n)}else news.unshift({id:Date.now(),...d})}if(kind==='match'){if(editing)matches=matches.map(m=>m.id===editing?{...m,...d}:m);else matches.unshift({id:Date.now(),...d})}save();closeModal();e.target.reset()};
+$('#editForm').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());if(kind==='team'){try{const imageFile=$('#playerImageFile')?.files?.[0];if(imageFile)d.image_url=await uploadPlayerImage(imageFile);const isEdit=editing!==null;const response=await fetch(isEdit?'/api/players?id='+encodeURIComponent(editing):'/api/players',{method:isEdit?'PUT':'POST',headers:playerHeaders(),body:JSON.stringify(d)});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.message||'تعذر حفظ بيانات اللاعب');closeModal();e.target.reset();await loadTeam();return}catch(error){alert(error.message);return}}if(kind==='news'){if(editing){news=news.map(n=>n.id===editing?{...n,...d}:n)}else news.unshift({id:Date.now(),...d})}if(kind==='match'){if(editing)matches=matches.map(m=>m.id===editing?{...m,...d}:m);else matches.unshift({id:Date.now(),...d})}save();closeModal();e.target.reset()};
 $('#newsSearch').oninput=render;$('#teamSearch').oninput=render;$('#teamFilter').onchange=render;render();loadTeam();
 </script>
 <script src="admin-news.js"></script>
