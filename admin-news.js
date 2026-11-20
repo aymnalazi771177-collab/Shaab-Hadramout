@@ -148,6 +148,7 @@
       if (selectedFiles.length) {
         const uploadForm = new FormData();
         selectedFiles.forEach(entry => uploadForm.append("images", entry.file));
+        uploadForm.append("scope", "news");
         const uploadResponse = await fetch("/api/media", { method:"POST", headers:authHeaders(), body:uploadForm });
         const uploadData = await uploadResponse.json();
         if (!uploadResponse.ok || !uploadData.success) throw new Error(uploadData.message || "تعذر رفع الصور");

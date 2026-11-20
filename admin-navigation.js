@@ -50,4 +50,23 @@
       if (sidebar) sidebar.classList.toggle("open");
     }
   }, true);
+
+  (async function applyAdminPermissions(){
+    const token=sessionStorage.getItem("shaab-admin-token")||"";
+    if(!token)return;
+    try{
+      const response=await fetch("/api/auth",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
+      const data=await response.json();
+      if(!response.ok||!data.success)throw new Error("جلسة غير صالحة");
+      const admin=data.admin||{},permissions=admin.permissions||[];
+      if(admin.owner||permissions.includes("*"))return;
+      const map={news:"news",team:"team",matches:"matches",standings:"standings",transfers:"transfers",media:"media",anthems:"anthems",history:"history",notifications:"notifications",admins:"admins"};
+      document.querySelectorAll(".nav button[data-section]").forEach(button=>{const key=button.dataset.section;if(key!=="dashboard"&&!permissions.includes(map[key]))button.hidden=true});
+      const active=document.querySelector(".nav button.active");
+      if(active&&active.hidden)document.querySelector('.nav button[data-section="dashboard"]')?.click();
+      const name=document.querySelector(".topbar .profile span:nth-child(2)");
+      if(name)name.textContent=admin.display_name||"مشرف";
+    }catch(error){sessionStorage.removeItem("shaab-admin-token");}
+  })();
+
 })();
