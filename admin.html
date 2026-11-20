@@ -99,7 +99,8 @@ $('#addNews').onclick=()=>openModal('news','إضافة خبر',[{name:'title',la
 window.editNews=id=>{const n=news.find(x=>x.id===id);openModal('news','تعديل الخبر',[{name:'title',label:'عنوان الخبر',required:true},{name:'date',label:'التاريخ'}],n)};
 window.delNews=id=>{if(confirm('هل تريد حذف هذا الخبر؟')){news=news.filter(x=>x.id!==id);save()}};
 $('#addPlayer').onclick=()=>openModal('team','إضافة لاعب أو مدرب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'}]);
-window.editPlayer=i=>{const p=team[i];openModal('team','تعديل بيانات اللاعب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'}],{id:i,name:p[0],position:p[1],number:p[2]})};\nwindow.delPlayer=i=>{if(confirm('حذف هذا اللاعب؟')){team.splice(i,1);save()}};
+window.editPlayer=i=>{const p=team[i];openModal('team','تعديل بيانات اللاعب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'}],{id:i,name:p[0],position:p[1],number:p[2]})};
+window.delPlayer=i=>{if(confirm('حذف هذا اللاعب؟')){team.splice(i,1);save()}};
 $('#addMatch').onclick=()=>openModal('match','إضافة مباراة',[{name:'opponent',label:'الفريق المنافس',required:true},{name:'date',label:'التاريخ'},{name:'time',label:'الوقت'},{name:'score',label:'النتيجة',placeholder:'مثال: 2 - 1'}]);
 window.editMatch=id=>{const m=matches.find(x=>x.id===id);openModal('match','تعديل المباراة',[{name:'opponent',label:'الفريق المنافس',required:true},{name:'date',label:'التاريخ'},{name:'time',label:'الوقت'},{name:'score',label:'النتيجة'}],m)};
 window.delMatch=id=>{if(confirm('حذف المباراة؟')){matches=matches.filter(x=>x.id!==id);save()}};
