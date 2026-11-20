@@ -22,11 +22,13 @@ export async function onRequestPost({ request, env }) {
       if (!ext) return json({ success: false, message: "الصيغ المدعومة: JPG وPNG وWEBP وGIF" }, 415);
       if (file.size > 8 * 1024 * 1024) return json({ success: false, message: "حجم كل صورة يجب ألا يتجاوز 8 ميجابايت" }, 413);
       const key = `${crypto.randomUUID()}.${ext}`;
-      await env.NEWS_MEDIA.put(key, file.stream(), { httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" } });
+      const bytes = await file.arrayBuffer();
+      await env.NEWS_MEDIA.put(key, bytes, { httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" } });
       uploaded.push({ url: new URL("/api/media/" + key, request.url).href, key });
     }
     return json({ success: true, images: uploaded });
-  } catch {
-    return json({ success: false, message: "تعذر رفع الصور. تحقق من إعداد مساحة التخزين." }, 500);
+  } catch (error) {
+    console.error("R2 media upload failed:", error);
+    return json({ success: false, message: "تعذر حفظ الصورة في مساحة التخزين. راجع سجل أخطاء الرفع." }, 500);
   }
 }
