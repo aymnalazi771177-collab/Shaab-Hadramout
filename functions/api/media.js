@@ -23,7 +23,7 @@ export async function onRequestPost({ request, env }) {
       if (file.size > 8 * 1024 * 1024) return json({ success: false, message: "حجم كل صورة يجب ألا يتجاوز 8 ميجابايت" }, 413);
       const key = `${crypto.randomUUID()}.${ext}`;
       await env.NEWS_MEDIA.put(key, file.stream(), { httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" } });
-      uploaded.push({ url: "/api/media/" + key, key });
+      uploaded.push({ url: new URL("/api/media/" + key, request.url).href, key });
     }
     return json({ success: true, images: uploaded });
   } catch {
