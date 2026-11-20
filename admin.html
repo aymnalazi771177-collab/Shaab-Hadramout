@@ -113,7 +113,7 @@ function configurePlayerImage(currentUrl=''){
 }
 async function uploadPlayerImage(file){
  const formData=new FormData();formData.append('images',file);
- const response=await fetch('/api/media',{method:'POST',headers:playerHeaders(),body:formData});
+ const response=await fetch('/api/media',{method:'POST',headers:{Authorization:'Bearer '+(sessionStorage.getItem('shaab-admin-token')||'')},body:formData});
  const data=await response.json();
  if(!response.ok||!data.success||!data.images?.[0]?.url)throw new Error([data.message||'تعذر رفع صورة اللاعب',data.detail].filter(Boolean).join(' — '));
  return data.images[0].url;
