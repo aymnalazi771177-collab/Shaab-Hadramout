@@ -4,6 +4,7 @@
     news: "إدارة الأخبار",
     team: "اللاعبون والمدرب",
     matches: "المباريات والنتائج",
+    transfers: "إدارة الانتقالات",
     admins: "المشرفون والصلاحيات"
   };
 
@@ -20,6 +21,7 @@
     const sidebar = document.getElementById("sidebar");
     if (sidebar) sidebar.classList.remove("open");
     if (name === "matches" && typeof window.loadMatches === "function") window.loadMatches();
+    if (name === "transfers" && typeof window.loadTransfers === "function") window.loadTransfers();
   }
 
   document.addEventListener("click", event => {
