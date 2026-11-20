@@ -173,11 +173,11 @@ loadClubStandings();
     const homeNews = document.querySelector("#page-home .news-section");
     const allNews = document.querySelector("#page-news .page-content");
     if (homeNews) {
-      homeNews.querySelectorAll(".news-row").forEach(row => row.remove());
+      homeNews.querySelectorAll(".news-row,.sample-note").forEach(row => row.remove());
       homeNews.insertAdjacentHTML("beforeend", markup || '<p class="sample-note">لا توجد أخبار منشورة حالياً.</p>');
     }
     if (allNews) {
-      allNews.querySelectorAll(".news-row").forEach(row => row.remove());
+      allNews.querySelectorAll(".news-row,.sample-note").forEach(row => row.remove());
       allNews.insertAdjacentHTML("beforeend", markup || '<p class="sample-note">لا توجد أخبار منشورة حالياً.</p>');
     }
   } catch (error) {
