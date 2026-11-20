@@ -39,6 +39,7 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
   };
   let newsById = new Map();
   const fallbackImage = "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=800&q=80";
+  const imageUrl = value => { const url = String(value || ""); return url.startsWith("/api/media/") ? "https://shaab-hadramout.pages.dev" + url : url; };
 
   const style = document.createElement("style");
   style.textContent = `
@@ -62,8 +63,8 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
     const panel = document.createElement("article");
     panel.className = "news-detail-panel";
     const galleryImages = Array.isArray(item.images) && item.images.length
-      ? item.images.map(entry => typeof entry === "string" ? entry : entry.url).filter(Boolean)
-      : (item.image_url ? [item.image_url] : []);
+      ? item.images.map(entry => imageUrl(typeof entry === "string" ? entry : entry.url)).filter(Boolean)
+      : (item.image_url ? [imageUrl(item.image_url)] : []);
     const gallery = galleryImages.length
       ? '<div class="news-detail-gallery">' + galleryImages.map((url, index) =>
           '<img src="' + escapeHtml(url) + '" alt="صورة الخبر ' + (index + 1) + '" loading="lazy">').join("") + '</div>'
@@ -95,7 +96,7 @@ document.querySelectorAll('#teamTabs button').forEach(b=>b.addEventListener('cli
     const items = payload.news;
     newsById = new Map(items.map(item => [String(item.id), item]));
     const markup = items.map(item => {
-      const image = (Array.isArray(item.images) && item.images.length ? (typeof item.images[0] === "string" ? item.images[0] : item.images[0].url) : item.image_url) || fallbackImage;
+      const image = imageUrl((Array.isArray(item.images) && item.images.length ? (typeof item.images[0] === "string" ? item.images[0] : item.images[0].url) : item.image_url) || fallbackImage);
       return '<article class="news-row" data-news-id="' + escapeHtml(item.id) + '" role="button" tabindex="0">' +
         '<img src="' + escapeHtml(image) + '" alt=""><div><h3>' +
         escapeHtml(item.title) + '</h3><small>' + escapeHtml(dateLabel(item.created_at)) +
