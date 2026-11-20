@@ -5,7 +5,7 @@ nav.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>showPage('home')));
 document.getElementById('menuBtn').addEventListener('click',()=>showPage('more'));
 document.getElementById('alertsBtn').addEventListener('click',()=>notify('لا توجد إشعارات جديدة حالياً'));
-document.getElementById('matchDetails').addEventListener('click',()=>notify('ستظهر تفاصيل المباراة بعد اعتماد بياناتها الرسمية'));
+document.addEventListener('click',event=>{const btn=event.target.closest('[data-match-details]');if(btn){const note=btn.dataset.notes||'لا توجد تفاصيل إضافية لهذه المباراة.';notify(note)}});
 document.getElementById('anthemPlay').addEventListener('click',()=>notify('ستضاف أناشيد النادي الرسمية قريباً'));
 document.querySelectorAll('[data-message]').forEach(b=>b.addEventListener('click',()=>notify(b.dataset.message)));
 let players=[];
@@ -52,6 +52,21 @@ async function loadClubPlayers(){
  }
 }
 
+
+
+function clubImageUrl(value){const url=String(value||'');return url.startsWith('/api/media/')?'https://shaab-hadramout.pages.dev'+url:url||'assets/logo.png'}
+function matchDateLabel(value){if(!value)return '';const d=new Date(value+'T00:00:00');return Number.isNaN(d.getTime())?value:d.toLocaleDateString('ar',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+function renderClubMatches(items){
+ const upcoming=items.filter(m=>m.status==='upcoming'||m.status==='live').sort((a,b)=>String(a.match_date).localeCompare(String(b.match_date)))[0];
+ const finished=items.filter(m=>m.status==='finished').sort((a,b)=>String(b.match_date).localeCompare(String(a.match_date))).slice(0,8);
+ const upcomingBox=document.getElementById('upcomingMatchCard'),resultsBox=document.getElementById('recentResults');
+ if(upcomingBox)upcomingBox.innerHTML=upcoming?'<article class="upcoming-card"><div class="versus-banner"><div class="versus-teams"><div><img src="'+escapeMatchHtml(clubImageUrl(upcoming.home_logo_url))+'" alt=""><b>شعب حضرموت</b></div><strong>VS</strong><div><img src="'+escapeMatchHtml(clubImageUrl(upcoming.opponent_logo_url))+'" alt=""><b>'+escapeMatchHtml(upcoming.opponent)+'</b></div></div></div><div class="match-meta"><span>'+escapeMatchHtml(matchDateLabel(upcoming.match_date))+'</span><i></i><span>'+escapeMatchHtml(upcoming.match_time||'يحدد لاحقاً')+'</span></div><p style="text-align:center;margin:8px 0;color:#777">'+escapeMatchHtml([upcoming.competition,upcoming.venue].filter(Boolean).join(' · '))+'</p><button class="details-btn" data-match-details data-notes="'+escapeMatchHtml(upcoming.notes||'')+'">تفاصيل المباراة</button></article>':'<article class="upcoming-card"><p class="sample-note">لا توجد مباراة قادمة معلنة حالياً.</p></article>';
+ if(resultsBox)resultsBox.innerHTML=finished.length?finished.map(m=>'<article class="result-card"><div><div class="result-crest"><img src="'+escapeMatchHtml(clubImageUrl(m.home_logo_url))+'" alt=""></div><b>شعب حضرموت</b></div><strong>'+escapeMatchHtml(m.home_score??'0')+' - '+escapeMatchHtml(m.away_score??'0')+'</strong><div><div class="opponent-crest small"><img src="'+escapeMatchHtml(clubImageUrl(m.opponent_logo_url))+'" alt=""></div><b>'+escapeMatchHtml(m.opponent)+'</b></div></article>').join(''):'<p class="sample-note">لا توجد نتائج مسجلة حتى الآن.</p>';
+}
+function escapeMatchHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function loadClubMatches(){const box=document.getElementById('upcomingMatchCard');try{const response=await fetch(clubBase+'/api/matches?refresh='+Date.now(),{cache:'no-store'});const data=await response.json();if(!response.ok||!data.success||!Array.isArray(data.matches))throw new Error('تعذر تحميل المباريات');renderClubMatches(data.matches)}catch(error){console.warn('Matches API unavailable',error);if(box)box.innerHTML='<article class="upcoming-card"><p class="sample-note">تعذر تحميل المباريات حالياً. تحقق من اتصال الإنترنت.</p></article>';const results=document.getElementById('recentResults');if(results)results.innerHTML='<p class="sample-note">تعذر تحميل النتائج حالياً.</p>'}}
+
+loadClubMatches();
 
 // Load club news from D1 and open a readable detail view when a story is tapped.
 (async function loadClubNews() {
