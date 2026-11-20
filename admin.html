@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#b90008"><title>لوحة إدارة نادي شعب حضرموت</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap');
+:root{--red:#bd0008;--deep:#870008;--ink:#202027;--muted:#777985;--bg:#f4f5f8;--line:#e8e9ee;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,Tahoma,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.layout{min-height:100vh;display:grid;grid-template-columns:255px 1fr}
+.sidebar{background:linear-gradient(180deg,#a90008,#790006);color:#fff;padding:22px 16px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:12px;padding:3px 7px 24px;border-bottom:1px solid #ffffff30}
+.brand img{width:58px;height:68px;object-fit:contain}.brand b{display:block;font-size:18px}.brand small{opacity:.8;font-size:12px}
+.nav{display:grid;gap:7px;margin-top:22px}.nav button{border:0;background:transparent;color:#fff;text-align:right;padding:13px 14px;border-radius:11px;font-weight:800;display:flex;align-items:center;gap:12px}.nav button span{font-size:19px;width:24px;text-align:center}.nav button.active,.nav button:hover{background:#ffffff20}
+.side-foot{position:absolute;bottom:20px;right:18px;left:18px;border-top:1px solid #ffffff30;padding-top:15px;font-size:12px;opacity:.85}
+.main{min-width:0}.topbar{height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:5}
+.topbar h1{font-size:22px;margin:0;font-weight:900}.profile{display:flex;align-items:center;gap:10px;font-weight:800}.avatar{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#ffeaeb;color:var(--red);font-size:19px}
+.content{padding:26px 30px;max-width:1400px;margin:auto}.demo{background:#fff6df;border:1px solid #f3d99a;color:#795500;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;margin-bottom:20px}
+.page{display:none}.page.active{display:block}.welcome{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.welcome h2{margin:0 0 5px;font-size:23px}.welcome p{margin:0;color:var(--muted);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:22px}.stat,.panel{background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:0 3px 12px #16162a08}.stat{padding:18px}.stat-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-weight:700;font-size:13px}.stat-icon{width:40px;height:40px;border-radius:12px;background:#fff0f0;color:var(--red);display:grid;place-items:center;font-size:20px}.stat strong{display:block;font-size:27px;margin-top:12px}.panel{padding:19px;margin-bottom:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.panel-head h3{margin:0;font-size:17px}
+.btn{border:0;border-radius:9px;background:var(--red);color:#fff;padding:10px 16px;font-weight:800}.btn.secondary{background:#fff0f0;color:var(--red)}.btn.light{background:#f0f1f4;color:#42434b}.btn.danger{background:#fff0f0;color:#b00008}.btn.small{padding:7px 10px;font-size:12px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{text-align:right;padding:13px 11px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted);font-weight:800;background:#fafafd}td{font-weight:600}.status{display:inline-block;border-radius:20px;padding:4px 9px;font-size:11px;background:#e9f8ef;color:#197344}
+.empty{padding:30px;text-align:center;color:var(--muted)}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.search{border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px 12px;min-width:220px;outline-color:var(--red)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.item-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;display:flex;gap:12px;align-items:center}.item-card img{width:58px;height:58px;border-radius:10px;object-fit:cover;background:#f1f1f4}.item-card b{display:block}.item-card small{color:var(--muted)}
+.modal-back{position:fixed;inset:0;background:#10101888;display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.modal-back.open{display:flex}.modal{background:#fff;border-radius:16px;padding:22px;width:min(520px,100%);max-height:90vh;overflow:auto}.modal h3{margin:0 0 16px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:13px;font-weight:800}.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:9px;padding:11px;outline-color:var(--red);width:100%;background:#fff}.field textarea{min-height:85px;resize:vertical}.modal-actions{display:flex;gap:9px;justify-content:flex-start;margin-top:18px}
+.mobile-menu{display:none;border:0;background:#fff;color:var(--red);font-size:23px}
+@media(max-width:950px){.layout{grid-template-columns:210px 1fr}.stats{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:repeat(2,1fr)}.content{padding:20px}}
+@media(max-width:650px){.layout{display:block}.sidebar{position:fixed;right:-270px;width:250px;z-index:15;transition:.2s}.sidebar.open{right:0}.mobile-menu{display:block}.topbar{padding:0 15px;height:65px}.topbar h1{font-size:18px}.content{padding:15px}.stats{gap:9px}.stat{padding:13px}.stat strong{font-size:23px}.cards{grid-template-columns:1fr}.welcome{align-items:flex-start;flex-direction:column}.toolbar{align-items:stretch;flex-direction:column}.search{width:100%}}
+</style></head>
+<body>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+ <div class="brand"><img src="assets/logo.png" alt="شعار النادي"><div><b>شعب حضرموت</b><small>لوحة إدارة النادي</small></div></div>
+ <nav class="nav">
+  <button class="active" data-section="dashboard"><span>⌂</span>الرئيسية</button>
+  <button data-section="news"><span>▤</span>إدارة الأخبار</button>
+  <button data-section="team"><span>♟</span>اللاعبون والمدرب</button>
+  <button data-section="matches"><span>⚽</span>المباريات والنتائج</button>
+  <button data-section="admins"><span>♙</span>المشرفون والصلاحيات</button>
+ </nav>
+ <div class="side-foot">نادي شعب حضرموت · 1964</div>
+</aside>
+<main class="main">
+ <header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="mobile-menu" id="menuToggle">☰</button><h1 id="pageTitle">الرئيسية</h1></div><div class="profile"><span class="avatar">♙</span><span>مدير النظام</span></div></header>
+ <div class="content">
+  <div class="demo">نسخة أولية للمعاينة — البيانات التي تضيفها هنا محفوظة على هذا الجهاز فقط حالياً. سنربطها بقاعدة بيانات آمنة قبل الاستخدام الفعلي.</div>
+  <section class="page active" id="section-dashboard">
+   <div class="welcome"><div><h2>مرحباً بك في لوحة الإدارة</h2><p>إدارة محتوى نادي شعب حضرموت من مكان واحد.</p></div><button class="btn" data-go="news">＋ إضافة خبر جديد</button></div>
+   <div class="stats">
+    <div class="stat"><div class="stat-top"><span>الأخبار</span><span class="stat-icon">▤</span></div><strong id="statNews">3</strong></div>
+    <div class="stat"><div class="stat-top"><span>اللاعبون</span><span class="stat-icon">♟</span></div><strong id="statPlayers">12</strong></div>
+    <div class="stat"><div class="stat-top"><span>المباريات</span><span class="stat-icon">⚽</span></div><strong id="statMatches">2</strong></div>
+    <div class="stat"><div class="stat-top"><span>المشرفون</span><span class="stat-icon">♙</span></div><strong>1</strong></div>
+   </div>
+   <div class="panel"><div class="panel-head"><h3>آخر الأخبار المضافة</h3><button class="btn secondary small" data-go="news">عرض الكل</button></div><div class="table-wrap"><table><thead><tr><th>عنوان الخبر</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody id="recentNews"></tbody></table></div></div>
+  </section>
+  <section class="page" id="section-news">
+   <div class="welcome"><div><h2>إدارة الأخبار</h2><p>إضافة الأخبار وتعديلها وحذفها.</p></div><button class="btn" id="addNews">＋ إضافة خبر</button></div>
+   <div class="panel"><div class="toolbar"><input class="search" id="newsSearch" placeholder="ابحث عن خبر..."></div><div class="table-wrap"><table><thead><tr><th>العنوان</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody id="newsTable"></tbody></table></div></div>
+  </section>
+  <section class="page" id="section-team">
+   <div class="welcome"><div><h2>اللاعبون والمدرب</h2><p>إدارة بيانات الفريق وتصنيف اللاعبين حسب المراكز.</p></div><button class="btn" id="addPlayer">＋ إضافة لاعب أو مدرب</button></div>
+   <div class="panel"><div class="toolbar"><input class="search" id="teamSearch" placeholder="ابحث بالاسم..."><select class="search" id="teamFilter"><option value="">كل المراكز</option><option>حراس المرمى</option><option>الدفاع</option><option>الوسط</option><option>الهجوم</option><option>المدرب</option></select></div><div class="cards" id="teamCards"></div></div>
+  </section>
+  <section class="page" id="section-matches">
+   <div class="welcome"><div><h2>المباريات والنتائج</h2><p>إضافة المباريات القادمة وتحديث النتائج.</p></div><button class="btn" id="addMatch">＋ إضافة مباراة</button></div>
+   <div class="panel"><div class="table-wrap"><table><thead><tr><th>الفريق المنافس</th><th>التاريخ</th><th>الوقت</th><th>النتيجة</th><th>الإجراءات</th></tr></thead><tbody id="matchesTable"></tbody></table></div></div>
+  </section>
+  <section class="page" id="section-admins">
+   <div class="welcome"><div><h2>المشرفون والصلاحيات</h2><p>هذه الواجهة مبدئية؛ إنشاء الحسابات وتحديد الصلاحيات سيتطلب ربط الخادم الآمن.</p></div></div>
+   <div class="panel"><div class="panel-head"><h3>حسابات الإدارة</h3></div><div class="item-card"><span class="avatar">♙</span><div><b>مدير النظام</b><small>المالك — جميع الصلاحيات</small></div><span class="status">نشط</span></div><div class="empty">سنضيف هنا إنشاء مشرفين وتحديد صلاحيات الأخبار والفريق والمباريات بعد تجهيز تسجيل الدخول الآمن.</div></div>
+  </section>
+ </div>
+</main></div>
+<div class="modal-back" id="modalBack"><div class="modal"><h3 id="modalTitle">إضافة</h3><form id="editForm"><div id="formFields"></div><div class="modal-actions"><button class="btn" type="submit">حفظ</button><button class="btn light" type="button" id="cancelModal">إلغاء</button></div></form></div></div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const seedNews=[{id:1,title:'شعب حضرموت يواصل تدريباته استعداداً للمباراة القادمة',date:'2026/11/20'},{id:2,title:'إدارة النادي تعلن عن التعاقد مع لاعب جديد',date:'2026/11/18'},{id:3,title:'الجماهير تعبر عن دعمها للفريق في المرحلة القادمة',date:'2026/11/15'}];
+const seedTeam=[['راشد العلي','حراس المرمى','1'],['أحمد باحاج','حراس المرمى','22'],['منير عوض','حراس المرمى','33'],['محمد سالم','الدفاع','4'],['عمر باجندوح','الدفاع','5'],['خالد باحسن','الدفاع','6'],['سالم عوض','الوسط','11'],['عبدالله عمر','الوسط','12'],['أحمد الصافي','الوسط','14'],['مازن سالم','الهجوم','7'],['فهد باوزير','الهجوم','9'],['علي باحمدان','الهجوم','10'],['المدرب الفني','المدرب','']];
+const seedMatches=[{id:1,opponent:'الفريق المنافس',date:'2026/11/22',time:'4:00 مساءً',score:'-'},{id:2,opponent:'الفريق المنافس',date:'2026/11/15',time:'5:00 مساءً',score:'1 - 2'}];
+function load(key,seed){try{return JSON.parse(localStorage.getItem('shaab-admin-'+key))||seed}catch{return seed}}
+let news=load('news',seedNews),team=load('team',seedTeam),matches=load('matches',seedMatches),editing=null,kind='';
+function save(){localStorage.setItem('shaab-admin-news',JSON.stringify(news));localStorage.setItem('shaab-admin-team',JSON.stringify(team));localStorage.setItem('shaab-admin-matches',JSON.stringify(matches));render()}
+function go(name){$$('.page').forEach(x=>x.classList.toggle('active',x.id==='section-'+name));$$('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.section===name));$('#pageTitle').textContent=({dashboard:'الرئيسية',news:'إدارة الأخبار',team:'اللاعبون والمدرب',matches:'المباريات والنتائج',admins:'المشرفون والصلاحيات'})[name];$('#sidebar').classList.remove('open')}
+$$('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.section));$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#menuToggle').onclick=()=>$('#sidebar').classList.toggle('open');
+function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ $('#statNews').textContent=news.length;$('#statPlayers').textContent=team.length;$('#statMatches').textContent=matches.length;
+ $('#recentNews').innerHTML=news.slice(0,4).map(n=>'<tr><td>'+safe(n.title)+'</td><td>'+safe(n.date)+'</td><td><span class="status">محفوظ محلياً</span></td></tr>').join('')||'<tr><td colspan="3" class="empty">لا توجد أخبار</td></tr>';
+ const q=($('#newsSearch')?.value||'').toLowerCase();$('#newsTable').innerHTML=news.filter(n=>n.title.toLowerCase().includes(q)).map(n=>'<tr><td>'+safe(n.title)+'</td><td>'+safe(n.date)+'</td><td><button class="btn secondary small" onclick="editNews('+n.id+')">تعديل</button> <button class="btn danger small" onclick="delNews('+n.id+')">حذف</button></td></tr>').join('')||'<tr><td colspan="3" class="empty">لا توجد أخبار</td></tr>';
+ const tq=($('#teamSearch')?.value||'').toLowerCase(),tf=$('#teamFilter')?.value||'';$('#teamCards').innerHTML=team.map((p,i)=>({p,i})).filter(x=>x.p[0].toLowerCase().includes(tq)&&(!tf||x.p[1]===tf)).map(x=>'<div class="item-card"><span class="avatar">♟</span><div style="flex:1"><b>'+safe(x.p[0])+'</b><small>'+safe(x.p[1])+(x.p[2]?' · رقم '+safe(x.p[2]):'')+'</small></div><button class="btn danger small" onclick="delPlayer('+x.i+')">حذف</button></div>').join('')||'<div class="empty">لا توجد بيانات</div>';
+ $('#matchesTable').innerHTML=matches.map(m=>'<tr><td>'+safe(m.opponent)+'</td><td>'+safe(m.date)+'</td><td>'+safe(m.time)+'</td><td>'+safe(m.score)+'</td><td><button class="btn secondary small" onclick="editMatch('+m.id+')">تعديل</button> <button class="btn danger small" onclick="delMatch('+m.id+')">حذف</button></td></tr>').join('')||'<tr><td colspan="5" class="empty">لا توجد مباريات</td></tr>';
+}
+function openModal(type,title,fields,data={}){kind=type;editing=data.id??null;$('#modalTitle').textContent=title;$('#formFields').innerHTML=fields.map(f=>'<div class="field"><label>'+f.label+'</label>'+(f.options?'<select name="'+f.name+'">'+f.options.map(o=>'<option '+(data[f.name]===o?'selected':'')+'>'+safe(o)+'</option>').join('')+'</select>':'<input name="'+f.name+'" '+(f.type?'type="'+f.type+'"':'')+' value="'+safe(data[f.name]||'')+'" '+(f.required?'required':'')+' placeholder="'+(f.placeholder||'')+'">')+'</div>').join('');$('#modalBack').classList.add('open')}
+function closeModal(){$('#modalBack').classList.remove('open')}
+$('#cancelModal').onclick=closeModal;$('#modalBack').onclick=e=>{if(e.target.id==='modalBack')closeModal()};
+$('#addNews').onclick=()=>openModal('news','إضافة خبر',[{name:'title',label:'عنوان الخبر',required:true},{name:'date',label:'التاريخ',placeholder:'2026/11/20'}]);
+window.editNews=id=>{const n=news.find(x=>x.id===id);openModal('news','تعديل الخبر',[{name:'title',label:'عنوان الخبر',required:true},{name:'date',label:'التاريخ'}],n)};
+window.delNews=id=>{if(confirm('هل تريد حذف هذا الخبر؟')){news=news.filter(x=>x.id!==id);save()}};
+$('#addPlayer').onclick=()=>openModal('team','إضافة لاعب أو مدرب',[{name:'name',label:'الاسم',required:true},{name:'position',label:'المركز',options:['حراس المرمى','الدفاع','الوسط','الهجوم','المدرب']},{name:'number',label:'رقم القميص'}]);
+window.delPlayer=i=>{if(confirm('حذف هذا اللاعب؟')){team.splice(i,1);save()}};
+$('#addMatch').onclick=()=>openModal('match','إضافة مباراة',[{name:'opponent',label:'الفريق المنافس',required:true},{name:'date',label:'التاريخ'},{name:'time',label:'الوقت'},{name:'score',label:'النتيجة',placeholder:'مثال: 2 - 1'}]);
+window.editMatch=id=>{const m=matches.find(x=>x.id===id);openModal('match','تعديل المباراة',[{name:'opponent',label:'الفريق المنافس',required:true},{name:'date',label:'التاريخ'},{name:'time',label:'الوقت'},{name:'score',label:'النتيجة'}],m)};
+window.delMatch=id=>{if(confirm('حذف المباراة؟')){matches=matches.filter(x=>x.id!==id);save()}};
+$('#editForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());if(kind==='news'){if(editing){news=news.map(n=>n.id===editing?{...n,...d}:n)}else news.unshift({id:Date.now(),...d})}if(kind==='team')team.push([d.name,d.position,d.number]);if(kind==='match'){if(editing)matches=matches.map(m=>m.id===editing?{...m,...d}:m);else matches.unshift({id:Date.now(),...d})}save();closeModal();e.target.reset()};
+$('#newsSearch').oninput=render;$('#teamSearch').oninput=render;$('#teamFilter').onchange=render;render();
+</script></body></html>
