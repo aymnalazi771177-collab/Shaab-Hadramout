@@ -271,3 +271,61 @@ body{background:#f5f5f7;color:var(--ink);padding-bottom:104px}
 @media(min-width:700px){.home-hero{height:340px}.home-content{margin-top:-50px}.main-story{height:265px}}
 @media(max-width:390px){.home-hero{height:300px}.hero-title{inset:68px 14px 32px}.hero-title img{width:96px;height:124px;flex-basis:96px}.hero-title h1{font-size:27px}.home-content{margin-top:-43px;padding-left:13px;padding-right:13px}.main-story{height:230px}.home-quick-grid{gap:7px}.home-quick-item{min-height:86px}.quick-icon{width:36px;height:36px}.player-card img{height:170px}}
 @media(max-width:350px){.hero-title{gap:8px}.hero-title img{width:82px;height:108px;flex-basis:82px}.hero-title h1{font-size:23px}.home-quick-item b{font-size:9px}.home-section-title small{font-size:9px}}
+
+/* MOCKUP 2 — complete public home composition */
+.page-home .app-header{position:relative;inset:auto;height:78px;padding:8px 17px;background:linear-gradient(112deg,#760019 0%,#b5092d 58%,#df2948 100%);box-shadow:0 5px 18px #51001430;z-index:20}
+.page-home .club-brand{display:flex;align-items:center;gap:10px;min-width:0;color:#fff}
+.page-home .club-brand img{width:48px;height:58px;object-fit:contain;filter:drop-shadow(0 3px 5px #3c000d66)}
+.page-home .club-brand div{display:grid;gap:2px}
+.page-home .club-brand strong{font-size:19px;font-weight:900;line-height:1.2}
+.page-home .club-brand small{font-size:11px;color:#ffe1e6;font-weight:700}
+.page-home .header-actions{display:flex;align-items:center;gap:8px}
+.page-home .app-header .icon-btn{position:relative;width:39px;height:39px;border-radius:13px;border:1px solid #ffffff40;background:#ffffff18;color:#fff}
+.page-home .home-hero{height:216px;background-image:linear-gradient(90deg,#37000bb8,#8f001f80 48%,#28000b9c),url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1500&q=90');background-position:center 47%;background-size:cover;overflow:hidden}
+.page-home .home-hero:before{background:linear-gradient(180deg,#24000a28,#29000a48 72%,#f5f5f7 100%),radial-gradient(ellipse at 50% 35%,#ffffff1c,transparent 60%)}
+.page-home .home-hero:after{height:35px;background:linear-gradient(transparent,#f5f5f7)}
+.page-home .hero-shade{background:linear-gradient(105deg,#6f001d20,transparent 65%)}
+.page-home .hero-banner-copy{position:absolute;z-index:2;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:16px 25px;color:#fff;text-shadow:0 2px 10px #24000b88}
+.page-home .hero-kicker{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border:1px solid #ffffff70;border-radius:30px;background:#ffffff1c;color:#fff0d5;font-size:11px;font-weight:800;backdrop-filter:blur(7px)}
+.page-home .hero-banner-copy h1{margin:9px 0 1px;font-size:34px;line-height:1.2;font-weight:900}
+.page-home .hero-banner-copy p{margin:3px 0 0;font-size:13px;font-weight:700;color:#fff0d5}
+.page-home .hero-flag{position:absolute;left:25px;bottom:22px;width:43px;height:43px;display:grid;place-items:center;border:1px solid #ffffff55;border-radius:50%;background:#a9002a99;color:#ffe3a2;font-size:25px}
+.page-home .home-content{margin-top:-10px;padding:0 15px 28px;z-index:4}
+.page-home .home-match-section{margin-top:0}
+.page-home .home-section-title{margin:18px 2px 11px}
+.page-home .home-section-title span{font-size:18px;color:#202431}
+.page-home .home-section-title span:before{width:4px;background:#c8102e}
+.page-home .home-section-title small{font-size:10px;color:#8a8d98}
+.page-home #homeUpcomingMatchCard .upcoming-card{border:1px solid #ececf0;border-radius:23px;background:#fff;box-shadow:0 9px 25px #1b1e2b12;padding-bottom:12px}
+.page-home #homeUpcomingMatchCard .versus-banner{height:145px;background:linear-gradient(110deg,#fff8f8e8,#fffdf9e8),url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1000&q=80') center/cover}
+.page-home #homeUpcomingMatchCard .versus-teams{color:#202431}
+.page-home #homeUpcomingMatchCard .versus-teams>strong{color:#bd0c30;font-size:26px}
+.page-home #homeUpcomingMatchCard .versus-teams>div img{width:66px;height:72px}
+.page-home #homeUpcomingMatchCard .versus-teams b{font-size:12px;color:#252936}
+.page-home #homeUpcomingMatchCard .match-meta{padding:11px 10px 3px;font-size:11px}
+.page-home #homeUpcomingMatchCard .match-meta span{padding:6px 9px;border-radius:10px;background:#f7f7f9}
+.page-home .home-quick-section{margin-top:5px;padding:0}
+.page-home .home-quick-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.page-home .home-quick-item{min-height:88px;padding:10px 3px 8px;border:1px solid #eeeef2;border-radius:18px;background:linear-gradient(145deg,#fff,#fdfdfe);box-shadow:0 5px 17px #1b1e2b0b;gap:7px}
+.page-home .quick-icon{width:39px;height:39px;border-radius:14px;background:linear-gradient(145deg,#fff0f2,#ffe4e9);color:#bd0c30;font-size:23px}
+.page-home .home-quick-item b{font-size:10.5px;color:#292d39}
+.page-home .featured-section{margin-top:5px}
+.page-home .featured-section .home-section-title{margin-top:21px}
+.page-home .main-story{height:218px;border:3px solid #fff;border-radius:22px;background:#1b1c25;box-shadow:0 10px 25px #17192320}
+.page-home .main-story .story-gradient{background:linear-gradient(180deg,#12081000 5%,#1208102c 38%,#100810e8 100%)}
+.page-home .main-story .slider-copy{right:17px;left:54px;bottom:22px}
+.page-home .main-story .slider-copy h2{font-size:18px;line-height:1.45}
+.page-home .main-story .slider-copy small{display:inline-block;margin-top:4px;padding:4px 10px;border-radius:20px;background:#ffffff22;color:#fff;font-size:10px}
+.page-home .main-story .slider-arrow{width:34px;height:39px;border-radius:12px;background:#26081388}
+.page-home .main-story .slider-dots button.selected{background:#f1c878}
+.page-home .news-section{margin:19px 0 0!important;padding:15px!important;border:1px solid #eeeef2!important;border-radius:21px!important;background:#fff!important;box-shadow:0 7px 21px #1719230b!important}
+.page-home .news-section .section-heading h2{font-size:18px;color:#b70b2c}
+.page-home .news-section .red-mark{width:26px;height:4px;border-radius:4px;background:#c8102e}
+.page-home .bottom-nav{height:84px;padding:6px 7px calc(7px + env(safe-area-inset-bottom));border:1px solid #eeeef2;border-bottom:0;border-radius:23px 23px 0 0;background:#fffffffa;box-shadow:0 -7px 25px #17192312;backdrop-filter:blur(16px)}
+.page-home .nav-item{height:67px;min-width:54px;gap:4px;color:#898d98}
+.page-home .nav-item svg{width:22px;height:22px}
+.page-home .nav-item small{font-size:10px;font-weight:800}
+.page-home .nav-item.active{color:#bd0c30}
+.page-home .nav-item.active svg{padding:5px;width:37px;height:37px;border-radius:13px;background:linear-gradient(140deg,#c8102e,#8f001e);stroke:#fff;filter:drop-shadow(0 4px 8px #b000293d)}
+.page-home .nav-item.active:before{display:none}
+@media(max-width:380px){.page-home .club-brand strong{font-size:17px}.page-home .home-hero{height:195px}.page-home .hero-banner-copy h1{font-size:30px}.page-home .home-quick-grid{gap:7px}.page-home .home-quick-item{min-height:82px}.page-home .quick-icon{width:35px;height:35px}}
