@@ -159,3 +159,73 @@ body{padding-bottom:88px;background:linear-gradient(180deg,#f8f8fa 0%,#f0f1f5 10
  .news-row img{width:98px;height:78px}
 }
 @media(min-width:700px){body{max-width:440px}.app-header{max-width:440px}.bottom-nav{width:440px}}
+
+
+/* ===== Exact reference #2 composition pass ===== */
+:root{--red:#d0000b;--deep:#8e0008;--ink:#11182f;--paper:#f1f2f8}
+html,body{background:#f0f1f7}
+body{padding-bottom:100px;background:linear-gradient(180deg,#f7f7fb,#e9eaf2)}
+.app-header{height:68px;position:absolute;top:0;left:0;right:0;z-index:25;padding:calc(12px + env(safe-area-inset-top)) 18px 0;background:linear-gradient(115deg,#a50009eF,#d0000beF);box-shadow:none;direction:ltr}
+.app-header:after{content:"نادي شعب حضرموت";top:calc(13px + env(safe-area-inset-top));font-size:clamp(17px,4.8vw,23px);font-weight:900;letter-spacing:0}
+.app-header .notification{display:none}
+.app-header .icon-btn{width:48px;height:48px;border-radius:50%;background:#ffffff20}
+.home-hero{height:236px;padding-top:0;background:linear-gradient(180deg,#8c0009d9 0%,#c9000bd0 48%,#7c0009b8 100%),url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=85') center 48%/cover}
+.home-hero:after{background:linear-gradient(180deg,#65000720 0%,transparent 58%,#8c000933 100%)}
+.hero-title{inset:68px 22px 5px;direction:rtl;display:flex;justify-content:center;gap:12px;text-align:center}
+.hero-title img{order:2;width:86px;height:110px;flex:0 0 86px;object-fit:contain}
+.hero-title>div{order:1;flex:0 1 auto;text-align:center;direction:rtl}
+.hero-title h1{font-size:clamp(23px,6vw,30px);font-weight:900;white-space:normal;text-shadow:0 2px 8px #39000670}
+.hero-title p{justify-content:center;font-size:14px}
+.home-content{padding:0 12px 22px;margin-top:0}
+.main-story{height:252px;margin-top:0;border:3px solid #fff;border-radius:25px;box-shadow:0 5px 15px #17152b26;transform:translateY(0)}
+.main-story>img{object-fit:cover;object-position:center}
+.main-story .story-gradient{background:linear-gradient(180deg,transparent 30%,#05050b12 50%,#07070de8 100%)}
+.main-story .slider-copy{right:18px;left:18px;bottom:27px;text-align:right}
+.main-story .slider-copy h2{font-size:clamp(17px,4.5vw,21px);line-height:1.35}
+.main-story .slider-copy small{display:none}
+.main-story .slider-arrow{top:50%;width:40px;height:48px;border-radius:50%;background:#15151b99;border:1px solid #ffffff80;font-size:34px}
+.main-story .slider-prev{right:12px}.main-story .slider-next{left:12px}
+.main-story .slider-dots{bottom:10px;left:50%;transform:translateX(-50%)}
+.home-match-section{margin-top:14px;padding:0}
+.home-match-section .home-section-title{display:none}
+#homeUpcomingMatchCard .upcoming-card{position:relative;overflow:hidden;border-radius:23px;background:#fff;border:1px solid #d9dbe5;box-shadow:0 5px 14px #1d1b2b18;padding-bottom:5px}
+#homeUpcomingMatchCard .versus-banner{height:145px;background:linear-gradient(90deg,#ffffffd9,#f4f4f8e8),url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1000&q=80') center/cover}
+#homeUpcomingMatchCard .versus-teams{color:#11182f}
+#homeUpcomingMatchCard .versus-teams>strong{color:#d0000b;font-size:32px;font-style:italic}
+#homeUpcomingMatchCard .versus-teams>div img{width:76px;height:78px;filter:drop-shadow(0 2px 2px #0002)}
+#homeUpcomingMatchCard .versus-teams b{font-size:13px}
+#homeUpcomingMatchCard .match-meta{padding:8px 8px 3px;color:#171923;font-size:12px}
+#homeUpcomingMatchCard .details-btn{display:none}
+#homeUpcomingMatchCard .upcoming-card>p{font-size:11px!important;margin:2px 0 8px!important}
+.home-quick-section{padding-top:2px}
+.home-quick-section .home-section-title{margin:15px 3px 10px}
+.home-quick-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.home-quick-item{min-height:91px;border-radius:19px;background:linear-gradient(145deg,#fff,#f0edf4);border:1px solid #fff;box-shadow:0 4px 10px #17152b18}
+.quick-icon{width:40px;height:40px;background:transparent;color:#d0000b;font-size:31px}
+.home-quick-item b{font-size:clamp(10px,2.8vw,13px);color:#11182f}
+.news-section{margin:14px 0 0!important;padding:13px!important;border-radius:22px!important;background:#fff!important;border:1px solid #fff!important;box-shadow:0 4px 12px #17152b15!important}
+.news-section .section-heading{background:linear-gradient(100deg,#d0000b,#a50009);color:#fff;border-radius:15px 15px 0 0;margin:-13px -13px 10px;padding:11px 14px}
+.news-section .section-heading h2{color:#fff}
+.news-section .red-mark{display:none}
+.news-row{border-radius:13px;box-shadow:none;border:0;border-bottom:1px solid #ececf1;background:#fff;padding:8px 0}
+.news-row img{width:40%;height:104px;border-radius:11px}
+.news-row h3{font-size:15px;color:#11182f}
+.sub-header{background:linear-gradient(110deg,#a90008,#d0000b)}
+.bottom-nav{height:92px;padding:5px 5px calc(7px + env(safe-area-inset-bottom));border-radius:25px 25px 0 0;background:#fff;box-shadow:0 -5px 20px #17152b15}
+.nav-item{height:75px;gap:5px;color:#20243a}
+.nav-item svg{width:28px;height:28px}
+.nav-item small{font-size:11px;font-weight:900}
+.nav-item.active{color:#d0000b}
+.nav-item.active:before{bottom:87px;height:0}
+@media(max-width:390px){
+ .home-hero{height:220px}
+ .hero-title{inset:69px 15px 4px}
+ .hero-title img{width:76px;height:98px;flex-basis:76px}
+ .main-story{height:225px}
+ #homeUpcomingMatchCard .versus-banner{height:132px}
+ .home-quick-grid{gap:7px}
+ .home-quick-item{min-height:82px;border-radius:15px}
+ .quick-icon{width:34px;height:34px;font-size:27px}
+ .news-row img{height:88px}
+}
+@media(min-width:700px){.app-header{max-width:440px}.bottom-nav{width:440px}}
