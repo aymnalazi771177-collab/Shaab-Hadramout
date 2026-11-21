@@ -310,3 +310,113 @@ svg{accent-color:var(--club-red)}
 @media(min-width:700px){
  .home-hero{max-width:672px;margin-left:auto!important;margin-right:auto!important}
 }
+
+
+/* MOCKUP MATCH PASS — restructure the existing live components to follow the approved screen concept */
+.page-home .home-hero{display:none!important}
+.page-home .home-content{
+ display:flex!important;flex-direction:column!important;gap:0!important;
+ padding:0 15px 28px!important;margin:0 auto!important
+}
+.page-home .featured-section{order:1!important;margin:0 -15px 17px!important}
+.page-home .featured-section>.home-section-title{display:none!important}
+.page-home .featured-section .main-story{
+ height:270px!important;min-height:270px!important;margin:0!important;
+ border:0!important;border-radius:0 0 25px 25px!important;background:#b80d2b!important;
+ box-shadow:0 8px 20px #9d10251c!important
+}
+.page-home .featured-section .main-story>img{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ object-fit:cover!important;object-position:center 34%!important
+}
+.page-home .featured-section .main-story .story-gradient{
+ inset:0!important;background:linear-gradient(180deg,#12050a08 25%,#15060b40 55%,#16050be8 100%)!important
+}
+.page-home .featured-section .main-story .slider-copy{
+ right:18px!important;left:18px!important;bottom:30px!important;text-align:right!important
+}
+.page-home .featured-section .main-story .slider-copy h2{
+ font-size:21px!important;line-height:1.45!important;margin-bottom:5px!important
+}
+.page-home .featured-section .main-story .slider-copy small{font-size:11px!important}
+.page-home .featured-section .main-story .slider-arrow{
+ width:32px!important;height:36px!important;border-radius:50%!important;
+ background:#ffffffdc!important;color:var(--club-red)!important;border:0!important
+}
+.page-home .featured-section .main-story .slider-dots{bottom:11px!important}
+.page-home .featured-section .main-story .slider-dots button{background:#ffffff9c!important}
+.page-home .featured-section .main-story .slider-dots button.selected{background:#fff!important}
+.page-home .home-quick-section{order:2!important;margin:0 0 13px!important}
+.page-home .home-quick-section .home-section-title{margin:17px 2px 12px!important}
+.page-home .home-quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+.page-home .home-quick-item{
+ min-height:88px!important;border-radius:17px!important;padding:10px 5px!important;
+ box-shadow:0 4px 14px #1b142808!important
+}
+.page-home .quick-icon{
+ width:40px!important;height:40px!important;border-radius:13px!important;
+ background:#fff0f2!important;color:var(--club-red)!important;font-size:23px!important;
+ filter:none!important
+}
+.page-home .home-quick-item b{font-size:11px!important}
+.page-home .home-match-section{order:3!important;margin:4px 0 15px!important}
+.page-home .news-section{order:4!important}
+.page-home .home-section-title{margin:18px 2px 11px!important}
+.page-home .home-match-section .upcoming-card{border-radius:19px!important}
+.page-home .home-match-section .versus-banner{
+ min-height:142px!important;border-radius:15px!important;
+ background:linear-gradient(130deg,#fff1f3,#fff 70%)!important
+}
+.page-home .news-section{padding:14px!important;border-radius:18px!important}
+
+/* Inner screens follow the red title-bar treatment in the reference mockup */
+.sub-header{
+ height:65px!important;padding:8px 16px!important;
+ background:linear-gradient(110deg,#a90024,#d20b32)!important;
+ border:0!important;border-radius:0 0 17px 17px!important;
+ box-shadow:0 5px 15px #b10b2b20!important
+}
+.sub-header h1{color:#fff!important;font-size:17px!important;font-weight:900!important}
+.sub-header img{width:39px!important;height:39px!important;border:1px solid #ffffff60!important;
+ border-radius:12px!important;background:#fff!important;padding:2px!important}
+.sub-header .back-btn{
+ color:#fff!important;background:#ffffff18!important;border:1px solid #ffffff4a!important;
+ box-shadow:none!important
+}
+.tabs{margin:9px 0 0!important;overflow-x:auto!important;white-space:nowrap!important}
+.tabs button{flex:0 0 auto!important}
+.player-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;padding:12px 14px 25px!important}
+.player-card{border-radius:17px!important;overflow:hidden!important}
+.player-card img{height:175px!important;object-fit:cover!important;object-position:center 18%!important}
+.player-card strong{display:block!important;margin:9px 8px 5px!important;text-align:center!important}
+.player-card em{display:inline-block!important;margin:0 auto 4px!important}
+.match-page-content,.transfer-page-content,.media-page-content,.page-content{
+ padding:15px 14px 30px!important
+}
+.result-card{border-radius:17px!important}
+.media-gallery{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.media-image-open img{height:150px!important}
+.more-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.more-grid button{min-height:108px!important;border-radius:17px!important}
+.bottom-nav{
+ height:70px!important;bottom:8px!important;border-radius:19px!important;
+ background:#fff!important;border:1px solid #eeeef2!important;
+ box-shadow:0 7px 22px #16121a1a!important
+}
+.nav-item{color:#222431!important}
+.nav-item small{color:#555966!important}
+.nav-item svg{stroke:#777b86!important}
+.nav-item.active small,.nav-item.active svg{color:var(--club-red)!important;stroke:var(--club-red)!important}
+.nav-item.active{position:relative!important}
+.nav-item.active:before{
+ content:"";position:absolute;top:0;width:29px;height:3px;border-radius:4px;
+ background:var(--club-red)!important
+}
+@media(min-width:700px){
+ .page-home .featured-section .main-story{border-radius:0 0 25px 25px!important}
+}
+@media(max-width:380px){
+ .page-home .featured-section .main-story{height:240px!important;min-height:240px!important}
+ .page-home .home-quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ .player-card img{height:150px!important}
+}
