@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - modern-ui-approved-mockup-20261121
 
 permissions:
   contents: read
@@ -44,7 +45,7 @@ jobs:
       - name: Prepare web assets
         run: |
           mkdir -p www/assets
-          cp index.html styles.css app.js www/
+          cp index.html styles.css app.js modern-ui.css modern-refresh.css modern-creative.css www/
           cp -R assets/. www/assets/
           base64 -d assets/club-logo.png.b64 > www/assets/logo.png
 

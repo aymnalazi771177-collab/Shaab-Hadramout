@@ -1,0 +1,206 @@
+/* 2026 visual refresh — public-facing app only */
+:root{
+  --club-red:#b80f2b;
+  --club-red-dark:#79091f;
+  --ink:#191d29;
+  --muted:#858b98;
+  --paper:#f3f4f7;
+  --card:#fff;
+  --line:#e8eaf0;
+  --soft-red:#fff0f2;
+  --shadow:0 9px 26px rgba(25,29,41,.065);
+}
+html,body{background:var(--paper)!important;color:var(--ink)!important}
+body{padding-bottom:112px!important;-webkit-font-smoothing:antialiased}
+button{transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
+button:active{transform:scale(.975)}
+.page{background:var(--paper)!important}
+.page-home .app-header{
+ position:sticky!important;top:0!important;z-index:80!important;inset:auto!important;
+ height:76px!important;padding:10px 17px!important;
+ background:linear-gradient(112deg,#79091f 0%,#b80f2b 62%,#cf2440 100%)!important;
+ box-shadow:0 8px 24px rgba(112,7,29,.18)!important;overflow:hidden
+}
+.page-home .app-header:after{
+ content:"";position:absolute;left:-32px;top:-65px;width:190px;height:190px;
+ border:1px solid #ffffff18;border-radius:50%;box-shadow:0 0 0 22px #ffffff08,0 0 0 46px #ffffff06;
+ pointer-events:none
+}
+.page-home .club-brand{position:relative;z-index:1;gap:11px!important}
+.page-home .club-brand img{
+ width:47px!important;height:47px!important;border-radius:15px!important;
+ padding:4px!important;background:#fff!important;box-shadow:0 4px 12px #3b001122
+}
+.page-home .club-brand strong{font-size:18px!important;letter-spacing:-.2px}
+.page-home .club-brand small{font-size:11px!important;color:#ffe3e8!important;letter-spacing:.15px}
+.page-home .header-actions{position:relative;z-index:1;display:flex;gap:8px}
+.page-home .app-header .icon-btn{
+ width:41px!important;height:41px!important;border-radius:14px!important;
+ border:1px solid #ffffff38!important;background:#ffffff17!important;backdrop-filter:blur(12px)
+}
+.page-home .app-header .icon-btn svg{width:21px!important;height:21px!important;stroke:#fff!important;stroke-width:1.9!important}
+.page-home .home-content{max-width:640px!important;padding:14px 15px 30px!important}
+.home-section-title{margin:23px 2px 12px!important;align-items:end!important}
+.home-section-title span{font-size:17px!important;font-weight:900!important;letter-spacing:-.2px}
+.home-section-title span:before{content:none!important}
+.home-section-title small{font-size:10px!important;color:#969ba6!important;font-weight:700!important}
+.home-match-section{margin:4px 0 22px!important}
+#homeUpcomingMatchCard .upcoming-card,.upcoming-card{
+ border:1px solid #e7e9ef!important;border-radius:23px!important;background:#fff!important;
+ padding:12px!important;box-shadow:var(--shadow)!important
+}
+#homeUpcomingMatchCard .versus-banner,.versus-banner{
+ background:linear-gradient(135deg,#fff4f5 0%,#fff 70%)!important;
+ border:1px solid #f4e2e6!important;border-radius:18px!important;padding:15px 10px!important
+}
+#homeUpcomingMatchCard .versus-teams>div img,.versus-teams>div img{
+ width:54px!important;height:54px!important;border-radius:16px!important;
+ padding:5px!important;background:#fff!important;border:1px solid #f0e5e8!important;
+ box-shadow:0 4px 12px #2a14200b!important
+}
+#homeUpcomingMatchCard .versus-teams b,.versus-teams b{font-size:12px!important;font-weight:900!important}
+#homeUpcomingMatchCard .versus-teams>strong,.versus-teams>strong{
+ color:var(--club-red)!important;font-size:18px!important;font-style:normal!important;letter-spacing:1px
+}
+#homeUpcomingMatchCard .match-meta,.match-meta{gap:7px!important;margin:12px 0 8px!important;color:#737987!important;font-size:10px!important}
+#homeUpcomingMatchCard .match-meta>*{
+ padding:6px 9px;border-radius:9px;background:#f5f6f8
+}
+#homeUpcomingMatchCard .details-btn,.details-btn{
+ border-radius:13px!important;background:linear-gradient(110deg,#a90d29,#cb1c3a)!important;
+ box-shadow:0 7px 16px #b80f2b25!important;padding:12px!important;font-size:12px!important
+}
+.home-quick-section{margin:0 0 20px!important}
+.home-quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+.home-quick-item{
+ min-height:96px!important;border:1px solid #e8eaf0!important;border-radius:19px!important;
+ background:linear-gradient(155deg,#fff 0%,#fdfdfe 100%)!important;
+ box-shadow:0 5px 17px rgba(25,29,41,.045)!important;padding:12px 5px!important;gap:8px!important
+}
+.quick-icon,.more-grid button span{
+ width:41px!important;height:41px!important;border-radius:14px!important;
+ display:grid!important;place-items:center!important;background:#fff0f2!important;
+ color:var(--club-red)!important;font-size:22px!important;font-weight:900!important;
+ filter:grayscale(1)!important
+}
+.home-quick-item b{font-size:11px!important;font-weight:900!important;color:#333846!important}
+.page-home .featured-section{margin:20px 0 22px!important}
+.page-home .main-story{
+ min-height:132px!important;height:auto!important;padding:14px!important;
+ border:1px solid #e8eaf0!important;border-radius:21px!important;background:#fff!important;
+ box-shadow:var(--shadow)!important;overflow:hidden!important
+}
+.page-home .main-story>img{
+ right:13px!important;width:100px!important;height:100px!important;
+ border-radius:16px!important;object-fit:cover!important;box-shadow:0 5px 14px #1112
+}
+.page-home .main-story .slider-copy{padding:0 126px 0 28px!important}
+.page-home .main-story .slider-copy h2{font-size:14px!important;line-height:1.65!important;font-weight:900!important}
+.page-home .main-story .slider-copy small{font-size:10px!important;color:#8b909b!important}
+.page-home .main-story .slider-arrow{
+ width:25px!important;height:30px!important;border-radius:9px!important;
+ background:#fff0f2!important;color:var(--club-red)!important;font-size:20px!important
+}
+.page-home .main-story .slider-prev{right:7px!important}
+.page-home .main-story .slider-next{left:7px!important}
+.page-home .main-story .slider-dots{bottom:6px!important}
+.page-home .main-story .slider-dots button{width:5px!important;height:5px!important}
+.page-home .main-story .slider-dots button.selected{width:17px!important}
+.news-section{padding:15px!important;border:1px solid #e8eaf0!important;border-radius:21px!important;background:#fff!important;box-shadow:var(--shadow)!important}
+.news-section .section-heading,.section-heading{
+ margin:0 1px 12px!important;display:flex!important;align-items:center!important;
+ justify-content:space-between!important;padding-bottom:10px;border-bottom:1px solid #f0f1f4
+}
+.news-section .section-heading h2,.section-heading h2{font-size:16px!important;font-weight:900!important}
+.news-section .red-mark{width:24px!important;height:4px!important;border-radius:5px!important;background:var(--club-red)!important}
+.news-row{
+ min-height:88px!important;margin:0 0 8px!important;padding:9px!important;gap:11px!important;
+ border:1px solid #eff0f3!important;border-radius:15px!important;background:#fff!important;
+ box-shadow:0 3px 10px #17192306!important
+}
+.news-row img{width:78px!important;height:70px!important;flex:0 0 78px!important;border-radius:12px!important}
+.news-row h3{font-size:12px!important;line-height:1.65!important;font-weight:900!important}
+.news-row small{font-size:9px!important;color:#9a9eaa!important}
+.sub-header{
+ position:sticky!important;top:0!important;z-index:60!important;height:72px!important;
+ padding:9px 15px!important;gap:10px!important;
+ background:linear-gradient(112deg,#79091f 0%,#b80f2b 68%,#cb2440 100%)!important;
+ box-shadow:0 7px 20px #76091d20!important
+}
+.sub-header h1{font-size:16px!important;font-weight:900!important;letter-spacing:-.2px}
+.sub-header img{width:42px!important;height:42px!important;border-radius:13px!important;padding:4px!important;background:#fff!important;filter:none!important}
+.back-btn{width:38px!important;height:38px!important;border-radius:13px!important;background:#ffffff17!important;font-size:23px!important}
+.page-content,.match-page-content,.transfer-page-content,.media-page-content{max-width:640px!important;padding:16px 15px 28px!important}
+.tabs{gap:8px!important;padding:13px 14px 7px!important}
+.tabs button,.media-filters button{
+ border:1px solid #e6e8ee!important;border-radius:12px!important;background:#fff!important;
+ color:#747987!important;padding:9px 14px!important;font-size:11px!important;font-weight:800!important;
+ box-shadow:none!important
+}
+.tabs button.selected,.media-filters button.selected{
+ background:var(--club-red)!important;border-color:var(--club-red)!important;color:#fff!important;
+ box-shadow:0 5px 13px #b80f2b25!important
+}
+.player-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;padding:12px 14px 25px!important}
+.player-card{
+ border:1px solid #e8eaf0!important;border-radius:19px!important;background:#fff!important;
+ box-shadow:0 7px 19px #1719230b!important;padding-bottom:13px!important
+}
+.player-card img{height:158px!important;object-fit:cover!important;object-position:center 20%!important}
+.player-card strong{font-size:12px!important;margin:10px 5px 6px!important}
+.player-card em{font-size:10px!important;border-radius:9px!important;padding:5px 12px!important;background:var(--soft-red)!important;color:var(--club-red)!important}
+.result-card,.transfer-card,.media-card,.history-panel,.anthem-item{
+ border:1px solid #e8eaf0!important;border-radius:19px!important;background:#fff!important;
+ box-shadow:0 7px 19px #17192309!important;margin-bottom:12px!important
+}
+.result-card{padding:15px!important}
+.result-card>strong{font-size:20px!important;font-weight:900!important;color:var(--club-red)!important}
+.result-card b{font-size:11px!important;font-weight:900!important}
+.result-crest img,.opponent-crest.small img{width:43px!important;height:43px!important;object-fit:contain!important}
+#leagueStandings{border:1px solid #e8eaf0!important;border-radius:19px!important;box-shadow:var(--shadow)!important}
+.standings-table{font-size:10px!important}
+.standings-table th{padding:13px 8px!important;background:#fff0f2!important}
+.standings-table td{padding:12px 8px!important}
+.more-grid{gap:12px!important;padding:17px 15px!important}
+.more-grid button{
+ min-height:108px!important;border:1px solid #e8eaf0!important;border-radius:19px!important;
+ background:#fff!important;box-shadow:0 7px 18px #17192309!important
+}
+.transfer-player-image{width:84px!important;flex-basis:84px!important}
+.transfer-card-body{padding:14px!important}
+.transfer-tag{border-radius:9px!important;padding:5px 9px!important}
+.media-gallery{gap:11px!important}
+.media-card{overflow:hidden!important}
+.media-image-open img{height:155px!important}
+.media-card-caption{padding:11px!important}
+.history-panel{padding:19px!important}
+.history-panel h2{font-size:19px!important}
+.history-content{font-size:13px!important;line-height:2.05!important}
+.anthem-item{padding:15px!important}
+.notifications-panel{box-shadow:0 -10px 40px #0002!important}
+.notification-item{border-radius:15px!important}
+.bottom-nav{
+ height:76px!important;left:12px!important;right:12px!important;bottom:9px!important;
+ padding:6px 6px calc(6px + env(safe-area-inset-bottom))!important;
+ border:1px solid #e7e9ef!important;border-radius:21px!important;
+ background:#ffffffed!important;backdrop-filter:blur(18px)!important;
+ box-shadow:0 10px 30px rgba(25,29,41,.13)!important
+}
+.nav-item{height:58px!important;gap:5px!important;color:#9a9eaa!important}
+.nav-item svg{width:21px!important;height:21px!important;stroke-width:1.9!important}
+.nav-item small{font-size:9px!important;font-weight:800!important}
+.nav-item.active{color:var(--club-red)!important}
+.nav-item.active svg{stroke:var(--club-red)!important}
+#toast{border-radius:13px!important;box-shadow:0 7px 22px #17192324!important}
+@media(min-width:700px){
+ .page-home .home-content,.page-content,.match-page-content,.transfer-page-content,.media-page-content{max-width:640px!important}
+ .bottom-nav{left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(calc(100% - 24px),640px)!important}
+}
+@media(max-width:380px){
+ .home-quick-grid{gap:8px!important}
+ .home-quick-item{min-height:89px!important}
+ .page-home .main-story>img{width:84px!important;height:84px!important}
+ .page-home .main-story .slider-copy{padding-right:108px!important}
+ .player-card img{height:143px!important}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
