@@ -61,3 +61,101 @@
 .main-story .slider-dots{position:absolute;z-index:5;bottom:13px;left:12px;display:flex;gap:6px}
 .main-story .slider-dots button{width:8px;height:8px;border:0;border-radius:50%;padding:0;background:#ffffff80}
 .main-story .slider-dots button.selected{width:20px;border-radius:8px;background:#fff}
+
+
+/* ===== Premium Shaab Hadramout redesign: reference concept #2 ===== */
+:root{--red:#c90012;--deep:#85000a;--ink:#171923;--muted:#737786;--paper:#f4f5f8;--line:#e7e8ed;--card:#fff;--soft-red:#fff0f1}
+html,body{background:var(--paper);color:var(--ink)}
+body{padding-bottom:88px;background:linear-gradient(180deg,#f8f8fa 0%,#f0f1f5 100%)}
+.app-header{height:62px;padding:calc(10px + env(safe-area-inset-top)) 19px 0;background:linear-gradient(110deg,#8d0009,#d00013);box-shadow:0 5px 18px #56000935}
+.app-header:after{content:"نادي شعب حضرموت";position:absolute;left:50%;top:calc(15px + env(safe-area-inset-top));transform:translateX(-50%);font-size:17px;font-weight:900;white-space:nowrap;letter-spacing:.1px}
+.icon-btn{width:40px;height:40px;border-radius:13px;background:#ffffff18;display:grid;place-items:center}
+.home-hero{height:210px;padding-top:60px;background:linear-gradient(120deg,#810009e8,#d00014b8),url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=85') center/cover}
+.home-hero:after{background:linear-gradient(180deg,#65000755 0%,transparent 65%,#78000955)}
+.hero-title{inset:64px 20px 4px;justify-content:space-between;gap:14px}
+.hero-title img{width:86px;height:104px;flex:0 0 86px;filter:drop-shadow(0 5px 8px #37000680)}
+.hero-title h1{font-size:27px;font-weight:900;line-height:1.25;text-shadow:0 2px 8px #42000670}
+.hero-title p{font-size:13px;font-weight:700;opacity:.94}
+.page-content{padding-inline:13px}
+.home-content{margin-top:0;padding-bottom:18px}
+.main-story{height:250px;margin-top:13px;border:2px solid #fff;border-radius:22px;box-shadow:0 9px 25px #30000d24}
+.main-story>img{object-position:center}
+.main-story .slider-copy{right:18px;left:58px;bottom:20px;text-shadow:0 2px 8px #0009}
+.main-story .slider-copy h2{font-size:20px;line-height:1.45}
+.main-story .slider-copy small{font-size:11px}
+.main-story .slider-arrow{width:36px;height:42px;border-radius:13px;background:#1a11118a;backdrop-filter:blur(8px)}
+.main-story .slider-prev{right:10px}.main-story .slider-next{left:10px}
+.main-story .slider-dots{bottom:13px;left:50%;transform:translateX(-50%)}
+.main-story .slider-dots button{width:7px;height:7px}
+.main-story .slider-dots button.selected{width:21px}
+.home-section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:19px 3px 11px;direction:rtl}
+.home-section-title span{font-size:19px;font-weight:900;color:#20212a;position:relative;padding-right:12px}
+.home-section-title span:before{content:"";position:absolute;right:0;top:3px;bottom:3px;width:4px;border-radius:5px;background:var(--red)}
+.home-section-title small{font-size:10px;color:#888;white-space:nowrap}
+.home-quick-section{padding:0 1px 4px}
+.home-quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.home-quick-item{min-width:0;min-height:91px;padding:10px 4px 9px;border:1px solid #fff;border-radius:18px;background:linear-gradient(145deg,#fff,#f7f2f4);box-shadow:0 5px 13px #1a16200f,0 1px 3px #1a162012;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--ink);font-family:inherit;cursor:pointer;transition:transform .18s,box-shadow .18s}
+.home-quick-item:active{transform:scale(.96)}
+.quick-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--soft-red);color:var(--red);font-size:25px;font-weight:900;line-height:1}
+.home-quick-item b{font-size:11px;line-height:1.35;font-weight:900;text-align:center}
+.home-match-section{margin-top:2px}
+#homeUpcomingMatchCard .upcoming-card{border-radius:20px;border:1px solid #fff;box-shadow:0 7px 20px #21151b12}
+#homeUpcomingMatchCard .versus-banner{height:156px;border-radius:18px 18px 0 0}
+#homeUpcomingMatchCard .versus-teams img{width:72px;height:76px}
+#homeUpcomingMatchCard .match-meta{font-size:12px;flex-wrap:wrap}
+.news-section{margin-top:17px!important;padding:14px!important;border-radius:20px!important;background:transparent!important;box-shadow:none!important;border:0!important}
+.news-section .section-heading{justify-content:space-between;margin-bottom:11px}
+.news-section .section-heading h2{font-size:19px}
+.news-section .red-mark{order:-1;width:28px;height:4px}
+.news-row{background:#fff;border:1px solid #fff;border-radius:17px;padding:9px;margin-bottom:9px;min-height:104px;box-shadow:0 5px 15px #1b15200b}
+.news-row:last-child{border-bottom:1px solid #fff}
+.news-row img{width:112px;height:84px;border-radius:12px}
+.news-row h3{font-size:13px;line-height:1.55}
+.news-row small{font-size:10px}
+.sub-header{height:82px;padding:env(safe-area-inset-top) 18px 0;background:linear-gradient(110deg,#8c0009,#d00013);box-shadow:0 5px 16px #65000b20}
+.sub-header h1{font-size:20px}
+.sub-header img{width:45px;height:50px;filter:drop-shadow(0 2px 3px #500)}
+.back-btn{font-size:29px}
+.tabs{padding:13px 11px;background:transparent;gap:7px}
+.tabs button{border:1px solid #e8e8ed;background:#fff;box-shadow:0 2px 6px #00000008}
+.tabs button.selected{background:var(--red);border-color:var(--red);box-shadow:0 4px 10px #c900122c}
+.player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}
+.player-card{border:1px solid #fff;border-radius:18px;box-shadow:0 5px 16px #16131a12;padding-bottom:11px}
+.player-card img{height:190px;background:linear-gradient(140deg,#f1f1f4,#e5e6ea)}
+.player-card strong{font-size:14px;margin:9px 4px 6px}
+.player-card em{border-radius:20px;padding:4px 11px}
+.coach-card img{height:205px}
+.match-page-content,.transfer-page-content,.media-page-content{padding:15px 13px 25px}
+.upcoming-card,.result-card,.transfer-card,.media-card,.anthem-item,.history-panel{border:1px solid #fff;border-radius:19px;box-shadow:0 5px 17px #17131c10}
+.versus-banner{height:190px}
+.versus-teams>div img{width:78px;height:82px}
+.match-meta{font-size:12px;padding:14px 10px}
+.details-btn{box-shadow:0 5px 12px #c900122b}
+.results-heading{margin:21px 4px 11px}
+.result-card{padding:15px 8px;margin-bottom:10px}
+.result-card>strong{border-radius:13px;min-width:75px}
+.more-grid{padding:16px 13px;gap:12px}
+.more-grid button{border:1px solid #fff;border-radius:18px;box-shadow:0 5px 14px #17131c0d}
+.media-filters button{border:1px solid #e8e8ed;box-shadow:0 2px 7px #00000008}
+.media-card{overflow:hidden}
+.bottom-nav{height:82px;padding:5px 7px calc(5px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e9e9ee;box-shadow:0 -7px 24px #1b15200d}
+.nav-item{height:67px;min-width:56px;gap:4px;color:#777}
+.nav-item svg{width:24px;height:24px}
+.nav-item small{font-size:10px;font-weight:800}
+.nav-item.active{color:var(--red)}
+.nav-item.active:before{content:"";position:absolute;width:42px;height:3px;border-radius:4px;background:var(--red);bottom:78px}
+#toast{bottom:96px}
+.notifications-panel{border-radius:22px 22px 16px 16px;box-shadow:0 -10px 35px #0002}
+@media(max-width:390px){
+ .home-hero{height:198px}
+ .hero-title h1{font-size:23px}
+ .hero-title img{width:75px;height:92px;flex-basis:75px}
+ .main-story{height:224px}
+ .home-quick-grid{gap:7px}
+ .home-quick-item{min-height:84px;border-radius:15px}
+ .quick-icon{width:34px;height:34px;font-size:22px}
+ .home-quick-item b{font-size:10px}
+ .player-card img{height:164px}
+ .news-row img{width:98px;height:78px}
+}
+@media(min-width:700px){body{max-width:440px}.app-header{max-width:440px}.bottom-nav{width:440px}}

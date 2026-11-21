@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b90008"><title>شعب حضرموت</title>
+<link rel="icon" href="assets/logo.png"><link rel="stylesheet" href="styles.css">
+</head>
+<body class="page-home">
+<header class="app-header">
+  <button class="icon-btn" id="menuBtn" aria-label="المزيد"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <span class="header-spacer"></span>
+  <button class="icon-btn notification" id="alertsBtn" aria-label="الإشعارات"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+</header>
+<main>
+<section class="page active" id="page-home">
+  <div class="home-hero">
+    <div class="hero-shade"></div>
+    <div class="hero-title"><img src="assets/logo.png" alt="شعار نادي شعب حضرموت"><div><h1>شعب حضرموت</h1><p><span></span> سفير حضرموت <span></span></p></div></div>
+  </div>
+  <div class="page-content home-content">
+    <article class="main-story" id="featuredNews"><p class="sample-note" style="color:#fff;text-align:center;padding:100px 12px">جارٍ تحميل آخر أخبار النادي...</p></article>
+    <section class="content-section news-section">
+      <div class="section-heading"><h2>آخر الأخبار</h2><span class="red-mark"></span></div>
+       <p class="sample-note">لا توجد أخبار منشورة حالياً.</p>
+     </section>
+  </div>
+</section>
+<section class="page" id="page-team">
+  <div class="sub-header"><button class="back-btn" data-home aria-label="رجوع">‹</button><h1>قائمة الفريق</h1><img src="assets/logo.png" alt="شعار النادي"></div>
+  <div class="tabs" id="teamTabs">
+    <button class="selected" data-filter="حراس المرمى">حراس المرمى</button><button data-filter="الدفاع">الدفاع</button><button data-filter="الوسط">الوسط</button><button data-filter="الهجوم">الهجوم</button><button data-filter="المدرب">المدرب</button>
+  </div>
+  <div class="player-grid" id="playerGrid"></div>
+  
+</section>
+<section class="page" id="page-matches">
+  <div class="sub-header"><button class="back-btn" data-home aria-label="القائمة">☰</button><h1>المباريات والنتائج</h1><img src="assets/logo.png" alt="شعار النادي"></div>
+  <div class="match-page-content">
+    <div id="upcomingMatchCard"><p class="sample-note">جارٍ تحميل المباراة القادمة...</p></div>
+    <div class="section-heading results-heading"><h2>آخر النتائج</h2><b>🏆</b></div>
+    <div id="recentResults"><p class="sample-note">جارٍ تحميل النتائج...</p></div>
+    <div class="section-heading results-heading"><h2>ترتيب الدوري</h2><b>📊</b></div><div id="leagueStandings"><p class="sample-note">جارٍ تحميل جدول الترتيب...</p></div>
+  </div>
+</section>
+<section class="page" id="page-news">
+  <div class="sub-header"><button class="back-btn" data-home>‹</button><h1>آخر الأخبار</h1><img src="assets/logo.png" alt=""></div>
+  <div class="page-content"><div class="section-heading"><h2>أخبار النادي</h2><span class="red-mark"></span></div><p class="sample-note">لا توجد أخبار منشورة حالياً.</p></div>
+</section>
+<section class="page" id="page-more">
+  <div class="sub-header"><button class="back-btn" data-home>‹</button><h1>المزيد</h1><img src="assets/logo.png" alt=""></div>
+  <div class="more-grid"><button data-open-page="transfers"><span>⇄</span><b>الانتقالات</b></button><button data-open-page="media"><span>▧</span><b>الصور والفيديو</b></button><button data-open-page="anthems"><span>♫</span><b>أناشيد النادي</b></button><button data-open-page="history"><span>🏆</span><b>تاريخ وإنجازات</b></button></div>
+</section>
+<section class="page" id="page-transfers">
+  <div class="sub-header"><button class="back-btn" data-home aria-label="رجوع">‹</button><h1>انتقالات اللاعبين</h1><img src="assets/logo.png" alt="شعار النادي"></div>
+  <div class="transfer-page-content"><div class="section-heading"><h2>آخر الانتقالات</h2><span class="red-mark"></span></div><div id="transferList"><p class="sample-note">جارٍ تحميل الانتقالات...</p></div></div>
+</section>
+<section class="page" id="page-media"><div class="sub-header"><button class="back-btn" data-home>‹</button><h1>الصور والفيديو</h1><img src="assets/logo.png" alt=""></div><div class="media-page-content"><div class="media-filters"><button class="selected" data-media-filter="all">الكل</button><button data-media-filter="image">الصور</button><button data-media-filter="video">الفيديو</button></div><div id="clubMediaGallery" class="media-gallery"><p class="sample-note">جارٍ تحميل الصور والفيديو...</p></div></div></section>
+<section class="page" id="page-anthems"><div class="sub-header"><button class="back-btn" data-home>‹</button><h1>أناشيد النادي</h1><img src="assets/logo.png" alt=""></div><div class="page-content"><div class="section-heading"><h2>أناشيد النوارس</h2><span class="red-mark"></span></div><div id="clubAnthemList"><p class="sample-note">جارٍ تحميل الأناشيد...</p></div></div></section>
+<section class="page" id="page-history"><div class="sub-header"><button class="back-btn" data-home>‹</button><h1>تاريخ وإنجازات النادي</h1><img src="assets/logo.png" alt=""></div><div class="page-content"><article class="history-panel" id="clubHistory"><p class="sample-note">جارٍ تحميل تاريخ النادي...</p></article></div></section>
+</main>
+<div class="notifications-backdrop" id="notificationsBackdrop" hidden><section class="notifications-panel"><header><h2>إشعارات النادي</h2><button id="closeNotifications" aria-label="إغلاق">×</button></header><div id="clubNotifications"><p class="sample-note">جارٍ تحميل الإشعارات...</p></div></section></div>
+<nav class="bottom-nav">
+ <button class="nav-item active" data-page="home"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><small>الرئيسية</small></button>
+ <button class="nav-item" data-page="news"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h8M8 11h8M8 15h5"/></svg><small>الأخبار</small></button>
+ <button class="nav-item" data-page="team"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M15 15c4-1 6 1 6 5"/></svg><small>الفريق</small></button>
+ <button class="nav-item" data-page="matches"><svg viewBox="0 0 24 24"><path d="m8 4 4 2 4-2 4 3-2 5 2 5-4 3-4-2-4 2-4-3 2-5-2-5z"/><path d="m9 9 6 6m0-6-6 6"/></svg><small>المباريات</small></button>
+ <button class="nav-item" data-page="more"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg><small>المزيد</small></button>
+</nav>
+<div id="toast" role="status"></div>
+<script src="app.js"></script>
+</body></html>
