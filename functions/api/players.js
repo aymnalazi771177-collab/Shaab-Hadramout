@@ -40,7 +40,7 @@ function clean(body) {
   const nationality = String(body.nationality || "يمني").trim().slice(0, 60);
   const age = numeric("age"), matches = numeric("matches"), clean_sheets = numeric("clean_sheets");
   const saves = numeric("saves"), goals = numeric("goals"), assists = numeric("assists");
-  const tackles = numeric("tackles"), readiness = Math.min(100, numeric("readiness"));
+  const tackles = numeric("tackles"), readiness = body.readiness === undefined || body.readiness === "" ? 90 : Math.min(100, numeric("readiness"));
   const height = String(body.height || "").trim().slice(0, 30);
   const bio = String(body.bio || "").trim().slice(0, 2000);
   if (!name) return { error: "اسم اللاعب مطلوب" };
