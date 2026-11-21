@@ -253,3 +253,60 @@ button:active{transform:scale(.97)!important}
  .player-card img{height:145px!important}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+
+
+/* FINAL RED + WHITE ART DIRECTION — remove every gold/yellow accent */
+:root{
+ --gold:var(--club-red)!important;
+ --club-red:#c8102e;--club-red-deep:#850019;--club-red-soft:#fff0f2;
+ --ink:#171923;--muted:#777d89;--paper:#f7f7f9;--card:#fff;--line:#e9e9ee;
+ --lift:0 10px 28px rgba(25,18,25,.065)
+}
+html,body,.page,.page-content{background:var(--paper)!important}
+.hero-title p,.hero-banner-copy p{color:#fff!important}
+.hero-title p span,.main-story .slider-dots button.selected{background:var(--club-red)!important}
+button, a, [role="button"]{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
+ outline:2px solid var(--club-red)!important;outline-offset:3px!important
+}
+/* Consistent crisp red icon language across every screen */
+svg{accent-color:var(--club-red)}
+.icon-btn,.back-btn,.quick-icon,.more-grid button span,.nav-item,
+.section-heading b,.results-heading b{color:var(--club-red)!important}
+.icon-btn svg,.back-btn svg,.quick-icon svg,.more-grid svg,.section-heading svg,
+.results-heading svg,.nav-item svg{stroke:var(--club-red)!important}
+.page-home .app-header .icon-btn,.back-btn{
+ background:#fff!important;border:1px solid #f0d9de!important;
+ box-shadow:0 3px 10px #c8102e0d!important
+}
+/* More deliberate spacing and restrained card treatment */
+.home-section-title span,.section-heading h2,.sub-header h1{
+ letter-spacing:-.25px!important
+}
+.home-section-title span:after,.section-heading .red-mark{
+ background:var(--club-red)!important
+}
+.home-quick-item,.player-card,.result-card,.transfer-card,.media-card,
+.history-panel,.anthem-item,.news-section,#leagueStandings{
+ border-color:#ededf1!important;box-shadow:0 5px 17px rgba(22,18,24,.045)!important
+}
+.home-quick-item:active,.more-grid button:active,.player-card:active{
+ transform:translateY(1px) scale(.985)!important
+}
+.quick-icon,.more-grid button span,.player-card em{
+ background:#fff0f2!important;color:var(--club-red)!important;
+ filter:none!important
+}
+.home-quick-item b,.more-grid button{color:#252630!important}
+.tabs button.selected,.media-filters button.selected,.details-btn{
+ background:var(--club-red)!important;border-color:var(--club-red)!important
+}
+.standings-table th{background:#fff0f2!important;color:var(--club-red)!important}
+.result-card>strong,.versus-teams>strong{color:var(--club-red)!important}
+/* Keep the club identity red/white even where legacy styles used gold */
+[style*="gold"],[style*="#e9c879"],[style*="#d8b56d"]{
+ color:var(--club-red)!important;border-color:var(--club-red)!important
+}
+@media(min-width:700px){
+ .home-hero{max-width:672px;margin-left:auto!important;margin-right:auto!important}
+}
