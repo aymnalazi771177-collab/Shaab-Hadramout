@@ -112,3 +112,9 @@ body{font-family:'Tajawal',Tahoma,sans-serif!important;padding-bottom:92px}
 .sample-note{font-size:12px!important;color:#9698a1!important;text-align:center!important;padding:18px 10px!important}
 @media(min-width:700px){.page-home .home-content,.page-content,.match-page-content,.transfer-page-content,.media-page-content{max-width:620px!important}.bottom-nav{left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(100%,620px)!important;border:1px solid var(--line)!important;border-bottom:0!important;border-radius:18px 18px 0 0!important}}
 @media(max-width:380px){.home-quick-grid{gap:8px!important}.home-quick-item{min-height:82px!important}.quick-icon{width:35px!important;height:35px!important}.player-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+/* Keep player and transfer cards icon-led rather than photo-led */
+.player-card img{display:none!important}
+.player-card:before{content:'♟';width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:var(--soft-red);color:var(--club-red);font-size:25px;font-weight:900}
+.transfer-player-image{display:none!important}
+.transfer-card:before{content:'⇄';flex:0 0 64px;display:grid;place-items:center;background:var(--soft-red);color:var(--club-red);font-size:27px;font-weight:900}
