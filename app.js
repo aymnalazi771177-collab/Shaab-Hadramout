@@ -2,6 +2,7 @@ const pages=['home','news','team','matches','more','transfers','media','anthems'
 function notify(message){toast.textContent=message;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),2300)}
 function showPage(name){pages.forEach(p=>document.getElementById('page-'+p).classList.toggle('active',p===name));nav.forEach(b=>b.classList.toggle('active',(['transfers','media','anthems','history'].includes(name)?'more':name)));document.body.classList.toggle('page-home',name==='home');if(name==='team')loadClubPlayers();if(name==='transfers')loadClubTransfers();if(name==='media')loadClubMedia();if(name==='matches')loadClubStandings();if(name==='anthems')loadClubAnthems();if(name==='history')loadClubHistory();window.scrollTo({top:0,behavior:'smooth'})}
 nav.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+document.querySelectorAll('.home-quick-item[data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 document.querySelectorAll('[data-open-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.openPage)));
 document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>showPage('home')));
 document.getElementById('menuBtn').addEventListener('click',()=>showPage('more'));
