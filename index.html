@@ -7,39 +7,44 @@
 </head>
 <body class="page-home">
 <header class="app-header">
-  <button class="icon-btn" id="menuBtn" aria-label="المزيد"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
-  <span class="header-spacer"></span>
-  <button class="icon-btn notification" id="alertsBtn" aria-label="الإشعارات"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+  <div class="club-brand"><img src="assets/logo.png" alt="شعار نادي شعب حضرموت"><div><strong>شعب حضرموت</strong><small>سفير حضرموت</small></div></div>
+  <div class="header-actions">
+    <button class="icon-btn notification" id="alertsBtn" aria-label="الإشعارات"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+    <button class="icon-btn" id="menuBtn" aria-label="المزيد"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  </div>
 </header>
 <main>
 <section class="page active" id="page-home">
   <div class="home-hero">
     <div class="hero-shade"></div>
-    <div class="hero-title"><img src="assets/logo.png" alt="شعار نادي شعب حضرموت"><div><h1>شعب حضرموت</h1><p><span></span> سفير حضرموت <span></span></p></div></div>
+    <div class="hero-banner-copy"><span class="hero-kicker">النوارس الخضر</span><h1>شعب حضرموت</h1><p>عراقةٌ.. انتماءٌ.. وطموحٌ لا يتوقف</p><span class="hero-flag">✦</span></div>
   </div>
   <div class="page-content home-content">
-    <article class="main-story" id="featuredNews"><p class="sample-note" style="color:#fff;text-align:center;padding:100px 12px">جارٍ تحميل آخر أخبار النادي...</p></article>
     <section class="home-match-section">
       <div class="home-section-title"><span>المباراة القادمة</span><small>موعدنا مع النوارس</small></div>
       <div id="homeUpcomingMatchCard"><p class="sample-note">جارٍ تحميل المباراة القادمة...</p></div>
     </section>
     <section class="home-quick-section" aria-label="أقسام النادي">
-      <div class="home-section-title"><span>اكتشف النادي</span><small>كل ما يخص النوارس في مكان واحد</small></div>
+      <div class="home-section-title"><span>أقسام النادي</span><small>تابع كل جديد</small></div>
       <div class="home-quick-grid">
-        <button class="home-quick-item" data-page="news"><span class="quick-icon">▤</span><b>الأخبار</b></button>
-        <button class="home-quick-item" data-page="team"><span class="quick-icon">♟</span><b>اللاعبون والجهاز الفني</b></button>
-        <button class="home-quick-item" data-page="matches"><span class="quick-icon">⚽</span><b>المباريات والنتائج</b></button>
-        <button class="home-quick-item" data-page="matches"><span class="quick-icon">🏆</span><b>ترتيب الدوري</b></button>
+        <button class="home-quick-item" data-page="team"><span class="quick-icon">♟</span><b>الفريق</b></button>
+        <button class="home-quick-item" data-page="matches"><span class="quick-icon">⚽</span><b>المباريات</b></button>
         <button class="home-quick-item" data-open-page="transfers"><span class="quick-icon">⇄</span><b>الانتقالات</b></button>
+        <button class="home-quick-item" data-open-page="anthems"><span class="quick-icon">♫</span><b>الأناشيد</b></button>
         <button class="home-quick-item" data-open-page="media"><span class="quick-icon">▧</span><b>الصور والفيديو</b></button>
-        <button class="home-quick-item" data-open-page="anthems"><span class="quick-icon">♫</span><b>أناشيد النادي</b></button>
-        <button class="home-quick-item" data-open-page="history"><span class="quick-icon">★</span><b>عن النادي</b></button>
+        <button class="home-quick-item" data-page="news"><span class="quick-icon">▤</span><b>الأخبار</b></button>
+        <button class="home-quick-item" data-page="matches"><span class="quick-icon">🏆</span><b>ترتيب الدوري</b></button>
+        <button class="home-quick-item" data-open-page="history"><span class="quick-icon">★</span><b>تاريخ النادي</b></button>
       </div>
+    </section>
+    <section class="featured-section">
+      <div class="home-section-title"><span>أخبار مختارة</span><small>أبرز أخبار النادي</small></div>
+      <article class="main-story" id="featuredNews"><p class="sample-note" style="color:#fff;text-align:center;padding:100px 12px">جارٍ تحميل الأخبار المختارة...</p></article>
     </section>
     <section class="content-section news-section">
       <div class="section-heading"><h2>آخر الأخبار</h2><span class="red-mark"></span></div>
-       <p class="sample-note">لا توجد أخبار منشورة حالياً.</p>
-     </section>
+      <p class="sample-note">لا توجد أخبار منشورة حالياً.</p>
+    </section>
   </div>
 </section>
 <section class="page" id="page-team">
