@@ -154,6 +154,26 @@ loadClubStandings();
     const item = newsById.get(String(row.dataset.newsId));
     if (item) openNewsDetail(item);
   });
+  async function loadFeaturedCarousel(){
+    const box=document.getElementById('featuredNews');if(!box)return;
+    try{
+      const response=await fetch(clubBase+'/api/carousel?refresh='+Date.now(),{cache:'no-store'});
+      const data=await response.json();if(!response.ok||!data.success)throw Error('تعذر تحميل السلايدر');
+      const slides=(data.slides||[]).slice(0,3);
+      if(!slides.length){box.innerHTML='<p class="sample-note" style="color:#fff;text-align:center;padding:100px 12px">لا توجد أخبار مختارة في السلايدر حالياً.</p>';return}
+      let active=0,timer=null;
+      const render=()=>{const item=slides[active],url=imageUrl(item.image_url||fallbackImage);
+        box.innerHTML='<img src="'+escapeHtml(url)+'" alt="'+escapeHtml(item.title)+'"><div class="story-gradient"></div><button type="button" class="slider-arrow slider-prev" aria-label="السابق">‹</button><button type="button" class="slider-arrow slider-next" aria-label="التالي">›</button><div class="slider-copy"><h2>'+escapeHtml(item.title)+'</h2><small>اضغط لقراءة الخبر</small></div><div class="slider-dots">'+slides.map((s,i)=>'<button type="button" data-slide-index="'+i+'" class="'+(i===active?'selected':'')+'" aria-label="الخبر '+(i+1)+'"></button>').join('')+'</div>';
+        box.onclick=e=>{const dot=e.target.closest('[data-slide-index]');if(dot){e.stopPropagation();active=Number(dot.dataset.slideIndex);render();restart();return}if(e.target.closest('.slider-prev')){e.stopPropagation();active=(active+slides.length-1)%slides.length;render();restart();return}if(e.target.closest('.slider-next')){e.stopPropagation();active=(active+1)%slides.length;render();restart();return}openNewsDetail(item)};
+      };
+      const restart=()=>{if(timer)clearInterval(timer);if(slides.length>1)timer=setInterval(()=>{active=(active+1)%slides.length;render()},5500)};
+      let startX=0;box.addEventListener('touchstart',e=>{startX=e.changedTouches[0].clientX},{passive:true});
+      box.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-startX;if(Math.abs(dx)>45&&slides.length>1){active=(active+(dx<0?1:slides.length-1))%slides.length;render();restart()}},{passive:true});
+      render();restart();
+    }catch(error){console.warn('Carousel unavailable',error);box.innerHTML='<p class="sample-note" style="color:#fff;text-align:center;padding:100px 12px">تعذر تحميل السلايدر حالياً.</p>'}
+  }
+  loadFeaturedCarousel();
+
 
   try {
     const response = await fetch("https://shaab-hadramout.pages.dev/api/news", { cache: "no-store" });
@@ -161,8 +181,7 @@ loadClubStandings();
     if (!response.ok || !payload.success || !Array.isArray(payload.news)) return;
     const items = payload.news;
     newsById = new Map(items.map(item => [String(item.id), item]));
-    const featured = document.getElementById('featuredNews');
-    if(featured && items[0]){const lead=items[0],leadImage=imageUrl((Array.isArray(lead.images)&&lead.images.length?(typeof lead.images[0]==='string'?lead.images[0]:lead.images[0].url):lead.image_url)||fallbackImage);featured.innerHTML='<img src="'+escapeHtml(leadImage)+'" alt=""><div class="story-gradient"></div><span class="story-arrow">‹</span><h2>'+escapeHtml(lead.title)+'</h2>';featured.onclick=()=>openNewsDetail(lead);featured.style.cursor='pointer'}else if(featured){featured.innerHTML='<p class="sample-note" style="color:#fff;text-align:center;padding:100px 12px">لا توجد أخبار منشورة حالياً.</p>'}
+    // The home hero is populated only by the separately managed carousel, never by latest news.
     const markup = items.map(item => {
       const image = imageUrl((Array.isArray(item.images) && item.images.length ? (typeof item.images[0] === "string" ? item.images[0] : item.images[0].url) : item.image_url) || fallbackImage);
       return '<article class="news-row" data-news-id="' + escapeHtml(item.id) + '" role="button" tabindex="0">' +

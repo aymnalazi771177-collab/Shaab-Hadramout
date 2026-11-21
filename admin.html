@@ -36,6 +36,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
  <div class="brand"><img src="assets/logo.png" alt="شعار النادي"><div><b>شعب حضرموت</b><small>لوحة إدارة النادي</small></div></div>
  <nav class="nav">
   <button class="active" data-section="dashboard"><span>⌂</span>الرئيسية</button>
+  <button data-section="carousel"><span>▣</span>السلايدر الرئيسي</button>
   <button data-section="news"><span>▤</span>إدارة الأخبار</button>
   <button data-section="team"><span>♟</span>اللاعبون والمدرب</button>
   <button data-section="matches"><span>⚽</span>المباريات والنتائج</button>
@@ -63,6 +64,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
    </div>
    <div class="panel"><div class="panel-head"><h3>آخر الأخبار المضافة</h3><button class="btn secondary small" data-go="news">عرض الكل</button></div><div class="table-wrap"><table><thead><tr><th>عنوان الخبر</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody id="recentNews"></tbody></table></div></div>
   </section>
+  <section class="page" id="section-carousel"><div class="welcome"><div><h2>السلايدر الرئيسي</h2><p>اختر حتى ثلاثة أخبار مستقلة تظهر في واجهة التطبيق الرئيسية.</p></div><button class="btn" id="addCarouselSlide">＋ إضافة خبر للسلايدر</button></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>الصورة</th><th>العنوان</th><th>الترتيب</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="carouselSlidesTable"><tr><td colspan="5" class="empty">جارٍ تحميل أخبار السلايدر...</td></tr></tbody></table></div><p style="color:#777;font-size:12px;margin:12px 0 0">هذا القسم مستقل تماماً عن الأخبار العادية. الحد الأقصى ثلاثة أخبار.</p></div></section>
   <section class="page" id="section-news">
    <div class="welcome"><div><h2>إدارة الأخبار</h2><p>إضافة الأخبار وتعديلها وحذفها.</p></div><button class="btn" id="addNews">＋ إضافة خبر</button></div>
    <div class="panel"><div class="toolbar"><input class="search" id="newsSearch" placeholder="ابحث عن خبر..."></div><div class="table-wrap"><table><thead><tr><th>العنوان</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody id="newsTable"></tbody></table></div></div>
@@ -172,5 +174,6 @@ $('#newsSearch').oninput=render;$('#mediaSearch').oninput=render;$('#teamSearch'
 </script>
 <script src="admin-full.js"></script>
 <script src="admin-news.js"></script>
+<script src="admin-carousel.js"></script>
 <script src="admin-navigation.js"></script>
 </body></html>

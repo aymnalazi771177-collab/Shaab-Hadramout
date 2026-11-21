@@ -2,6 +2,7 @@
   const titles = {
     dashboard: "الرئيسية",
     news: "إدارة الأخبار",
+    carousel: "السلايدر الرئيسي",
     team: "اللاعبون والمدرب",
     matches: "المباريات والنتائج",
     transfers: "إدارة الانتقالات",
@@ -22,6 +23,7 @@
     if (heading) heading.textContent = titles[name];
     const sidebar = document.getElementById("sidebar");
     if (sidebar) sidebar.classList.remove("open");
+    if (name === "carousel" && typeof window.loadCarouselSlides === "function") window.loadCarouselSlides();
     if (name === "matches" && typeof window.loadMatches === "function") window.loadMatches();
     if (name === "transfers" && typeof window.loadTransfers === "function") window.loadTransfers();
     if (name === "media" && typeof window.loadMedia === "function") window.loadMedia();
@@ -60,7 +62,7 @@
       if(!response.ok||!data.success)throw new Error("جلسة غير صالحة");
       const admin=data.admin||{},permissions=admin.permissions||[];
       if(admin.owner||permissions.includes("*"))return;
-      const map={news:"news",team:"team",matches:"matches",standings:"standings",transfers:"transfers",media:"media",anthems:"anthems",history:"history",notifications:"notifications",admins:"admins"};
+      const map={carousel:"carousel",news:"news",team:"team",matches:"matches",standings:"standings",transfers:"transfers",media:"media",anthems:"anthems",history:"history",notifications:"notifications",admins:"admins"};
       document.querySelectorAll(".nav button[data-section]").forEach(button=>{const key=button.dataset.section;if(key!=="dashboard"&&!permissions.includes(map[key]))button.hidden=true});
       document.querySelectorAll("[data-go]").forEach(button=>{if(!permissions.includes(button.dataset.go))button.hidden=true});
       const active=document.querySelector(".nav button.active");
