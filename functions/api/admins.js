@@ -1,6 +1,6 @@
 import {ensureAuthTables,makePasswordHash,isAuthorized} from "../_auth.js";
 const json=(d,s=200)=>Response.json(d,{status:s,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization"}});
-const modules=["news","team","matches","transfers","media","standings","anthems","history","notifications"];
+const modules=["carousel","news","team","matches","transfers","media","reels","standings","anthems","history","notifications","basketball","volleyball","handball","tennis","taekwondo","athletics","otherSports","board","presidents","membership","foundation","store","contact"];
 function cleanPermissions(v){return Array.isArray(v)?[...new Set(v.filter(x=>modules.includes(x)))]:[]}
 export async function onRequestOptions(){return new Response(null,{status:204,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization"}})}
 export async function onRequestGet({request,env}){if(!await isAuthorized(request,env,"admins"))return json({success:false,message:"غير مصرح"},401);try{await ensureAuthTables(env);const{results}=await env.DB.prepare("SELECT id,username,display_name,permissions,active,created_at FROM admins ORDER BY id").all();return json({success:true,admins:results.map(a=>({...a,permissions:JSON.parse(a.permissions||"[]")}))})}catch(e){return json({success:false,message:"تعذر تحميل المشرفين"},500)}}
