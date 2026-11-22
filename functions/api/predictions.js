@@ -1,5 +1,4 @@
 import { tokenHash } from "../_auth.js";
-import { isAuthorized } from "../_auth.js";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +23,7 @@ async function ensure(env) {
   )`).run();
 }
 async function currentFan(request,env) {
-  const token=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
+  const token=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
   if(!token) return null;
   const row=await env.DB.prepare(`SELECT f.id,f.active,s.expires_at FROM fan_sessions s JOIN fans f ON f.id=s.fan_id WHERE s.token_hash=? LIMIT 1`)
     .bind(await tokenHash(token)).first();
