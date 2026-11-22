@@ -39,7 +39,7 @@ export async function onRequestGet({ env }) {
       if (!byNews.has(image.news_id)) byNews.set(image.news_id, []);
       byNews.get(image.news_id).push({ url: image.url });
     }
-    return json({ success: true, news: results.map(item => ({ ...item, images: byNews.get(item.id) || (item.image_url ? [{ url: item.image_url }] : []) })) });
+    return json({ success: true, news: results.map(item => ({ ...item, images: (byNews.get(item.id) || []).filter(image => image.url !== item.image_url) })) });
   } catch (error) {
     return json({ success: false, message: "تعذر جلب الأخبار" }, 500);
   }
@@ -53,7 +53,7 @@ export async function onRequestPost({ request, env }) {
     if (!title) return json({ success: false, message: "عنوان الخبر مطلوب" }, 400);
     const images = cleanImages(body.images);
     const legacyImage = String(body.image_url || "");
-    const mainImage = images[0]?.url || legacyImage;
+    const mainImage = legacyImage || images[0]?.url || "";
     const result = await env.DB.prepare("INSERT INTO news (title, content, image_url) VALUES (?, ?, ?)").bind(title, String(body.content || ""), mainImage).run();
     const id = result.meta.last_row_id;
     if (images.length) await env.DB.batch(images.map((image, index) => env.DB.prepare("INSERT INTO news_images (news_id, url, sort_order) VALUES (?, ?, ?)").bind(id, image.url, index)));
@@ -73,7 +73,7 @@ export async function onRequestPut({ request, env }) {
     if (!title) return json({ success: false, message: "عنوان الخبر مطلوب" }, 400);
     const images = cleanImages(body.images);
     const hasImages = Array.isArray(body.images);
-    const mainImage = hasImages ? (images[0]?.url || "") : String(body.image_url || "");
+    const mainImage = body.image_url !== undefined ? String(body.image_url || "") : (hasImages ? (images[0]?.url || "") : "");
     const result = await env.DB.prepare("UPDATE news SET title = ?, content = ?, image_url = ? WHERE id = ?").bind(title, String(body.content || ""), mainImage, id).run();
     if (!result.meta.changes) return json({ success: false, message: "الخبر غير موجود" }, 404);
     if (hasImages) {
