@@ -55,7 +55,9 @@ function clean(body) {
   let lineup = [];
   try { lineup = Array.isArray(body.lineup) ? body.lineup : JSON.parse(body.lineup_json || "[]"); } catch { return { error: "بيانات التشكيلة غير صحيحة" }; }
   if (!Array.isArray(lineup) || lineup.length > 11) return { error: "يجب ألا تتجاوز التشكيلة 11 لاعباً" };
-  lineup = [...new Set(lineup.map(value => Number(value)).filter(value => Number.isInteger(value) && value > 0))];
+  const validSlots = new Set(["gk","rb","rcb","cb","lcb","lb","rdm","dm","ldm","rm","cm","lm","am","rw","ss","st","lw"]);
+  const normalized = lineup.map(value => typeof value === "object" && value !== null ? {id:Number(value.id),slot:validSlots.has(String(value.slot||""))?String(value.slot):"cm"} : {id:Number(value),slot:"cm"}).filter(value => Number.isInteger(value.id) && value.id > 0);
+  lineup = normalized.filter((value,index) => normalized.findIndex(item => item.id === value.id) === index);
   const is_home = body.is_home === false || body.is_home === "0" || body.is_home === "away" ? 0 : 1;
   const home_score = body.home_score === "" || body.home_score == null ? null : Number(body.home_score);
   const away_score = body.away_score === "" || body.away_score == null ? null : Number(body.away_score);
