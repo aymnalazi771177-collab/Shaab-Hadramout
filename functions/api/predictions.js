@@ -25,9 +25,9 @@ async function ensure(env) {
 async function currentFan(request,env) {
   const token=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
   if(!token) return null;
-  const row=await env.DB.prepare(`SELECT f.id,f.active,s.expires_at FROM fan_sessions s JOIN fans f ON f.id=s.fan_id WHERE s.token_hash=? LIMIT 1`)
+  const row=await env.DB.prepare(`SELECT f.id,f.active,f.phone,s.expires_at FROM fan_sessions s JOIN fans f ON f.id=s.fan_id WHERE s.token_hash=? LIMIT 1`)
     .bind(await tokenHash(token)).first();
-  return row && row.active && Date.parse(row.expires_at)>Date.now() ? row : null;
+  return row && row.active && row.phone && Date.parse(row.expires_at)>Date.now() ? row : null;
 }
 export async function onRequestOptions(){return new Response(null,{status:204,headers});}
 export async function onRequestGet({request,env}) {
