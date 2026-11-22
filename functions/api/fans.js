@@ -76,25 +76,34 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPost({ request, env }) {
+  let stage = "request";
   try {
+    stage = "tables";
     await ensureFanTables(env);
+    stage = "parse_body";
     const body = await request.json();
     const action = clean(body.action);
 
     if (action === "register") {
+      stage = "register_validate";
       const name = clean(body.name).slice(0, 80);
       const phone = normalizePhone(body.phone);
       const password = String(body.password || "");
       if (name.split(/\s+/).filter(Boolean).length !== 3) return json({ success: false, message: "اكتب اسمك الثلاثي" }, 400);
       if (!/^\+?[0-9]{7,15}$/.test(phone)) return json({ success: false, message: "رقم الجوال غير صحيح، أدخل الرقم مع مفتاح الدولة عند الحاجة" }, 400);
       if (password.length < 8 || password.length > 128) return json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }, 400);
+      stage = "register_lookup";
       const exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=?").bind(phone).first();
       if (exists) return json({ success: false, message: "رقم الجوال مسجل مسبقاً، سجل الدخول بدلاً من إنشاء حساب جديد" }, 409);
+      stage = "register_hash";
       const passwordHash = await makePasswordHash(password);
+      stage = "register_insert";
       const result = await env.DB.prepare("INSERT INTO fans(full_name,phone,password_hash) VALUES(?,?,?)")
         .bind(name, phone, passwordHash).run();
+      stage = "register_fetch";
       const fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,created_at FROM fans WHERE id=?")
         .bind(result.meta.last_row_id).first();
+      stage = "register_session";
       const token = await createSession(env, fan.id);
       return json({ success: true, token, user: safeUser(fan), message: "تم إنشاء حسابك بنجاح" }, 201);
     }
@@ -164,8 +173,9 @@ export async function onRequestPost({ request, env }) {
 
     return json({ success: false, message: "طلب غير معروف" }, 400);
   } catch (error) {
-    console.error("Fan authentication failed", error);
-    return json({ success: false, message: "تعذر إكمال العملية حالياً، حاول مرة أخرى" }, 500);
+    console.error("Fan authentication failed", { stage, name: error?.name || "Error", message: String(error?.message || error).slice(0, 240) });
+    const code = stage.startsWith("register_") ? "FAN-" + stage.slice(9).toUpperCase() : "FAN-" + stage.toUpperCase();
+    return json({ success: false, code, message: "تعذر إكمال العملية حالياً، رمز التشخيص: " + code }, 500);
   }
 }
 
