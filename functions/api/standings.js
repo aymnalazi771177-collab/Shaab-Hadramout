@@ -3,9 +3,9 @@ const json=(d,s=200)=>Response.json(d,{status:s,headers:{"Access-Control-Allow-O
 async function ensure(e){
  await e.DB.prepare("CREATE TABLE IF NOT EXISTS club_tournaments(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,created_at TEXT DEFAULT CURRENT_TIMESTAMP,updated_at TEXT DEFAULT CURRENT_TIMESTAMP)").run();
  await e.DB.prepare("CREATE TABLE IF NOT EXISTS league_standings(id INTEGER PRIMARY KEY AUTOINCREMENT,team_name TEXT NOT NULL,played INTEGER NOT NULL DEFAULT 0,wins INTEGER NOT NULL DEFAULT 0,draws INTEGER NOT NULL DEFAULT 0,losses INTEGER NOT NULL DEFAULT 0,goals_for INTEGER NOT NULL DEFAULT 0,goals_against INTEGER NOT NULL DEFAULT 0,points INTEGER NOT NULL DEFAULT 0,updated_at TEXT DEFAULT CURRENT_TIMESTAMP)").run();
- const info=await e.DB.prepare("PRAGMA table_info(league_standings)").all();
- if(!(info.results||[]).some(x=>x.name==="tournament_id"))await e.DB.prepare("ALTER TABLE league_standings ADD COLUMN tournament_id INTEGER").run();
- if(!(info.results||[]).some(x=>x.name==="logo_url"))await e.DB.prepare("ALTER TABLE league_standings ADD COLUMN logo_url TEXT");
+ let info=await e.DB.prepare("PRAGMA table_info(league_standings)").all();
+ if(!(info.results||[]).some(x=>x.name==="tournament_id")){await e.DB.prepare("ALTER TABLE league_standings ADD COLUMN tournament_id INTEGER").run();info=await e.DB.prepare("PRAGMA table_info(league_standings)").all();}
+ if(!(info.results||[]).some(x=>x.name==="logo_url")){await e.DB.prepare("ALTER TABLE league_standings ADD COLUMN logo_url TEXT").run();}
  const count=await e.DB.prepare("SELECT COUNT(*) AS n FROM league_standings WHERE tournament_id IS NULL").first();
  if(Number(count?.n||0)>0){
   let t=await e.DB.prepare("SELECT id FROM club_tournaments ORDER BY id LIMIT 1").first();
