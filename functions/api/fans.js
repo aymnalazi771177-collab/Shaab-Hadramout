@@ -1,5 +1,44 @@
 import { makePasswordHash, checkPassword, newSessionToken, tokenHash } from "../_auth.js";
 
+// Cloudflare Workers limits PBKDF2 to 100,000 iterations.
+// Keep this fan-specific so administrator password hashing remains unchanged.
+const FAN_PASSWORD_ITERATIONS = 100000;
+const fanEncoder = new TextEncoder();
+const toHex = bytes => [...new Uint8Array(bytes)].map(value => value.toString(16).padStart(2, "0")).join("");
+const fromHex = value => new Uint8Array((value.match(/.{2}/g) || []).map(pair => parseInt(pair, 16)));
+
+async function makeFanPasswordHash(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey("raw", fanEncoder.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations: FAN_PASSWORD_ITERATIONS, hash: "SHA-256" },
+    key,
+    256
+  );
+  return "pbkdf2-sha256$" + FAN_PASSWORD_ITERATIONS + "$" + toHex(salt) + "$" + toHex(bits);
+}
+
+async function checkFanPassword(password, stored) {
+  if (typeof stored === "string" && stored.startsWith("pbkdf2-sha256$")) {
+    try {
+      const [, iterationsText, saltHex, hashHex] = stored.split("$");
+      const iterations = Number(iterationsText);
+      if (iterations !== FAN_PASSWORD_ITERATIONS || !/^[0-9a-f]{32}$/i.test(saltHex) || !/^[0-9a-f]{64}$/i.test(hashHex)) return false;
+      const key = await crypto.subtle.importKey("raw", fanEncoder.encode(password), "PBKDF2", false, ["deriveBits"]);
+      const bits = await crypto.subtle.deriveBits(
+        { name: "PBKDF2", salt: fromHex(saltHex), iterations, hash: "SHA-256" },
+        key,
+        256
+      );
+      return crypto.subtle.timingSafeEqual(new Uint8Array(bits), fromHex(hashHex));
+    } catch {
+      return false;
+    }
+  }
+  // Retain the legacy verifier for existing records; no stored hashes are rewritten.
+  return checkPassword(password, stored);
+}
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -96,7 +135,7 @@ export async function onRequestPost({ request, env }) {
       const exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=?").bind(phone).first();
       if (exists) return json({ success: false, message: "رقم الجوال مسجل مسبقاً، سجل الدخول بدلاً من إنشاء حساب جديد" }, 409);
       stage = "register_hash";
-      const passwordHash = await makePasswordHash(password);
+      const passwordHash = await makeFanPasswordHash(password);
       stage = "register_insert";
       const result = await env.DB.prepare("INSERT INTO fans(full_name,phone,password_hash) VALUES(?,?,?)")
         .bind(name, phone, passwordHash).run();
@@ -128,7 +167,7 @@ export async function onRequestPost({ request, env }) {
       if (!phone || !password) return json({ success: false, message: "أدخل رقم الجوال وكلمة المرور" }, 400);
       const fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE phone=?")
         .bind(phone).first();
-      if (!fan || !fan.active || !fan.password_hash || !await checkPassword(password, fan.password_hash)) {
+      if (!fan || !fan.active || !fan.password_hash || !await checkFanPassword(password, fan.password_hash)) {
         return json({ success: false, message: "رقم الجوال أو كلمة المرور غير صحيحة" }, 401);
       }
       const token = await createSession(env, fan.id);
