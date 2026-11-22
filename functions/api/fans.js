@@ -167,3 +167,5 @@ export async function onRequestDelete({ request, env }) {
     return json({ success: false, message: "تعذر تسجيل الخروج" }, 500);
   }
 }
+
+// Google sign-in client configuration is supplied through the Pages environment.
