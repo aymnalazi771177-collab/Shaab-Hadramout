@@ -7,6 +7,17 @@ function json(data, status = 200) {
   }});
 }
 async function ensureTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS fan_predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id INTEGER NOT NULL,
+    fan_id INTEGER NOT NULL,
+    choice TEXT NOT NULL CHECK(choice IN ('win','draw','loss')),
+    points INTEGER NOT NULL DEFAULT 0,
+    settled INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(match_id, fan_id)
+  )`).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     opponent TEXT NOT NULL,
@@ -93,6 +104,13 @@ export async function onRequestPut({ request, env }) {
     if (data.error) return json({ success: false, message: data.error }, 400);
     const result = await env.DB.prepare("UPDATE matches SET opponent=?, opponent_logo_url=?, home_logo_url=?, match_date=?, match_time=?, venue=?, competition=?, is_home=?, status=?, home_score=?, away_score=?, notes=?, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(data.opponent, data.opponent_logo_url, data.home_logo_url, data.match_date, data.match_time, data.venue, data.competition, data.is_home, data.status, data.home_score, data.away_score, data.notes, id).run();
     if (!result.meta.changes) return json({ success: false, message: "المباراة غير موجودة" }, 404);
+    if (data.status === "finished" && data.home_score !== null && data.away_score !== null) {
+      const clubScore = data.is_home ? data.home_score : data.away_score;
+      const opponentScore = data.is_home ? data.away_score : data.home_score;
+      const outcome = clubScore > opponentScore ? "win" : clubScore < opponentScore ? "loss" : "draw";
+      await env.DB.prepare("UPDATE fan_predictions SET points=CASE WHEN choice=? THEN 3 ELSE 0 END, settled=1, updated_at=CURRENT_TIMESTAMP WHERE match_id=?")
+        .bind(outcome, id).run();
+    }
     return json({ success: true });
   } catch (error) {
     console.error("Matches PUT failed", error);
