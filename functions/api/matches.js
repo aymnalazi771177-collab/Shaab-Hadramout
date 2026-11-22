@@ -32,9 +32,15 @@ async function ensureTable(env) {
     home_score INTEGER,
     away_score INTEGER,
     notes TEXT DEFAULT '',
+    formation TEXT DEFAULT '',
+    lineup_json TEXT DEFAULT '[]',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`).run();
+  const columns = await env.DB.prepare("PRAGMA table_info(matches)").all();
+  const existing = new Set((columns.results || []).map(column => column.name));
+  if (!existing.has("formation")) await env.DB.prepare("ALTER TABLE matches ADD COLUMN formation TEXT DEFAULT ''").run();
+  if (!existing.has("lineup_json")) await env.DB.prepare("ALTER TABLE matches ADD COLUMN lineup_json TEXT DEFAULT '[]'").run();
 }
 const statuses = ["upcoming", "live", "finished", "postponed", "cancelled"];
 function clean(body) {
@@ -45,6 +51,11 @@ function clean(body) {
   const competition = String(body.competition || "").trim();
   const status = String(body.status || "upcoming").trim();
   const notes = String(body.notes || "").trim();
+  const formation = String(body.formation || "").trim().slice(0, 20);
+  let lineup = [];
+  try { lineup = Array.isArray(body.lineup) ? body.lineup : JSON.parse(body.lineup_json || "[]"); } catch { return { error: "بيانات التشكيلة غير صحيحة" }; }
+  if (!Array.isArray(lineup) || lineup.length > 11) return { error: "يجب ألا تتجاوز التشكيلة 11 لاعباً" };
+  lineup = [...new Set(lineup.map(value => Number(value)).filter(value => Number.isInteger(value) && value > 0))];
   const is_home = body.is_home === false || body.is_home === "0" || body.is_home === "away" ? 0 : 1;
   const home_score = body.home_score === "" || body.home_score == null ? null : Number(body.home_score);
   const away_score = body.away_score === "" || body.away_score == null ? null : Number(body.away_score);
@@ -62,7 +73,7 @@ function clean(body) {
     try { const parsed = new URL(value); if (!["http:", "https:"].includes(parsed.protocol)) throw new Error(); }
     catch { return { error: "رابط الشعار غير صحيح" }; }
   }
-  return { opponent, opponent_logo_url, home_logo_url, match_date, match_time, venue, competition, is_home, status, home_score, away_score, notes };
+  return { opponent, opponent_logo_url, home_logo_url, match_date, match_time, venue, competition, is_home, status, home_score, away_score, notes, formation, lineup_json: JSON.stringify(lineup) };
 }
 export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: {
@@ -87,7 +98,7 @@ export async function onRequestPost({ request, env }) {
     await ensureTable(env);
     const data = clean(await request.json());
     if (data.error) return json({ success: false, message: data.error }, 400);
-    const result = await env.DB.prepare("INSERT INTO matches (opponent, opponent_logo_url, home_logo_url, match_date, match_time, venue, competition, is_home, status, home_score, away_score, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(data.opponent, data.opponent_logo_url, data.home_logo_url, data.match_date, data.match_time, data.venue, data.competition, data.is_home, data.status, data.home_score, data.away_score, data.notes).run();
+    const result = await env.DB.prepare("INSERT INTO matches (opponent, opponent_logo_url, home_logo_url, match_date, match_time, venue, competition, is_home, status, home_score, away_score, notes, formation, lineup_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(data.opponent, data.opponent_logo_url, data.home_logo_url, data.match_date, data.match_time, data.venue, data.competition, data.is_home, data.status, data.home_score, data.away_score, data.notes, data.formation, data.lineup_json).run();
     return json({ success: true, id: result.meta.last_row_id }, 201);
   } catch (error) {
     console.error("Matches POST failed", error);
@@ -102,7 +113,7 @@ export async function onRequestPut({ request, env }) {
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم المباراة غير صحيح" }, 400);
     const data = clean(await request.json());
     if (data.error) return json({ success: false, message: data.error }, 400);
-    const result = await env.DB.prepare("UPDATE matches SET opponent=?, opponent_logo_url=?, home_logo_url=?, match_date=?, match_time=?, venue=?, competition=?, is_home=?, status=?, home_score=?, away_score=?, notes=?, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(data.opponent, data.opponent_logo_url, data.home_logo_url, data.match_date, data.match_time, data.venue, data.competition, data.is_home, data.status, data.home_score, data.away_score, data.notes, id).run();
+    const result = await env.DB.prepare("UPDATE matches SET opponent=?, opponent_logo_url=?, home_logo_url=?, match_date=?, match_time=?, venue=?, competition=?, is_home=?, status=?, home_score=?, away_score=?, notes=?, formation=?, lineup_json=?, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(data.opponent, data.opponent_logo_url, data.home_logo_url, data.match_date, data.match_time, data.venue, data.competition, data.is_home, data.status, data.home_score, data.away_score, data.notes, data.formation, data.lineup_json, id).run();
     if (!result.meta.changes) return json({ success: false, message: "المباراة غير موجودة" }, 404);
     if (data.status === "finished" && data.home_score !== null && data.away_score !== null) {
       const clubScore = data.is_home ? data.home_score : data.away_score;
