@@ -1,7 +1,15 @@
 import {isAuthorized} from "../_auth.js";
 const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,PUT,DELETE,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"};
 const json=(d,s=200)=>Response.json(d,{status:s,headers});
-async function ensure(env){await env.DB.prepare("CREATE TABLE IF NOT EXISTS club_tournaments(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,created_at TEXT DEFAULT CURRENT_TIMESTAMP,updated_at TEXT DEFAULT CURRENT_TIMESTAMP)").run()}
+async function ensure(env){
+ await env.DB.prepare("CREATE TABLE IF NOT EXISTS club_tournaments(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,created_at TEXT DEFAULT CURRENT_TIMESTAMP,updated_at TEXT DEFAULT CURRENT_TIMESTAMP)").run();
+ await env.DB.prepare("CREATE TABLE IF NOT EXISTS league_standings(id INTEGER PRIMARY KEY AUTOINCREMENT,team_name TEXT NOT NULL,played INTEGER NOT NULL DEFAULT 0,wins INTEGER NOT NULL DEFAULT 0,draws INTEGER NOT NULL DEFAULT 0,losses INTEGER NOT NULL DEFAULT 0,goals_for INTEGER NOT NULL DEFAULT 0,goals_against INTEGER NOT NULL DEFAULT 0,points INTEGER NOT NULL DEFAULT 0,updated_at TEXT DEFAULT CURRENT_TIMESTAMP)").run();
+ const info=await env.DB.prepare("PRAGMA table_info(league_standings)").all();
+ if(!(info.results||[]).some(x=>x.name==="tournament_id"))await env.DB.prepare("ALTER TABLE league_standings ADD COLUMN tournament_id INTEGER").run();
+ const count=await env.DB.prepare("SELECT COUNT(*) AS n FROM league_standings WHERE tournament_id IS NULL").first();
+ if(Number(count?.n||0)>0){let t=await env.DB.prepare("SELECT id FROM club_tournaments ORDER BY id LIMIT 1").first();if(!t){const r=await env.DB.prepare("INSERT INTO club_tournaments(name) VALUES(?)").bind("الترتيب الحالي").run();t={id:r.meta.last_row_id}}await env.DB.prepare("UPDATE league_standings SET tournament_id=? WHERE tournament_id IS NULL").bind(t.id).run();}
+ await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_league_standings_tournament ON league_standings(tournament_id,points DESC)").run();
+}
 export async function onRequestOptions(){return new Response(null,{status:204,headers})}
 export async function onRequestGet({env}){try{await ensure(env);const{results}=await env.DB.prepare("SELECT t.*,COUNT(s.id) AS teams_count FROM club_tournaments t LEFT JOIN league_standings s ON s.tournament_id=t.id GROUP BY t.id ORDER BY t.id DESC").all();return json({success:true,tournaments:results||[]})}catch(e){return json({success:false,message:"تعذر تحميل البطولات"},500)}}
 export async function onRequestPost({request,env}){if(!await isAuthorized(request,env,"standings"))return json({success:false,message:"غير مصرح"},401);try{await ensure(env);const b=await request.json(),name=String(b.name||"").trim();if(!name||name.length>120)return json({success:false,message:"اكتب اسم البطولة (حتى 120 حرفاً)"},400);const r=await env.DB.prepare("INSERT INTO club_tournaments(name) VALUES(?)").bind(name).run();return json({success:true,id:r.meta.last_row_id,name},201)}catch(e){return json({success:false,message:"اسم البطولة موجود مسبقاً أو تعذر حفظها"},400)}}
