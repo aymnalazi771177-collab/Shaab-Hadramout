@@ -175,7 +175,7 @@ export async function onRequestPost({ request, env }) {
   } catch (error) {
     console.error("Fan authentication failed", { stage, name: error?.name || "Error", message: String(error?.message || error).slice(0, 240) });
     const code = stage.startsWith("register_") ? "FAN-" + stage.slice(9).toUpperCase() : "FAN-" + stage.toUpperCase();
-    return json({ success: false, code, message: "تعذر إكمال العملية حالياً، رمز التشخيص: " + code }, 500);
+    return json({ success: false, code, diagnostic: { name: String(error?.name || "Error").slice(0, 80), detail: String(error?.message || error).slice(0, 240) }, message: "تعذر إكمال العملية حالياً، رمز التشخيص: " + code }, 500);
   }
 }
 
