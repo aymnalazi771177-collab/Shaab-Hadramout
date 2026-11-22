@@ -45,6 +45,7 @@ export async function onRequestGet({request,env}) {
       FROM fans f LEFT JOIN fan_predictions p ON p.fan_id=f.id AND p.settled=1
       WHERE f.active=1 AND f.phone IS NOT NULL
       GROUP BY f.id,f.full_name
+      HAVING COALESCE(SUM(p.points),0)>0
       ORDER BY points DESC,f.full_name COLLATE NOCASE ASC LIMIT 30`).all();
     return json({success:true,myPrediction,leaderboard});
   } catch(e) {
