@@ -48,7 +48,7 @@ export async function onRequestGet({env}){
   }catch(error){console.error("Archive GET failed",error);return json({success:false,message:"تعذر تحميل ذاكرة النوارس"},500)}
 }
 export async function onRequestPost({request,env}){
-  if(!await isAuthorized(request,env,"media"))return json({success:false,message:"غير مصرح"},401);
+  if(!await isAuthorized(request,env,"archive"))return json({success:false,message:"غير مصرح"},401);
   try{
     await ensureTable(env);
     const d=clean(await request.json());if(d.error)return json({success:false,message:d.error},400);
@@ -57,7 +57,7 @@ export async function onRequestPost({request,env}){
   }catch(error){console.error("Archive POST failed",error);return json({success:false,message:"تعذر حفظ مادة ذاكرة النوارس"},500)}
 }
 export async function onRequestPut({request,env}){
-  if(!await isAuthorized(request,env,"media"))return json({success:false,message:"غير مصرح"},401);
+  if(!await isAuthorized(request,env,"archive"))return json({success:false,message:"غير مصرح"},401);
   try{
     await ensureTable(env);
     const id=Number(new URL(request.url).searchParams.get("id"));
@@ -71,7 +71,7 @@ export async function onRequestPut({request,env}){
   }catch(error){console.error("Archive PUT failed",error);return json({success:false,message:"تعذر تعديل مادة ذاكرة النوارس"},500)}
 }
 export async function onRequestDelete({request,env}){
-  if(!await isAuthorized(request,env,"media"))return json({success:false,message:"غير مصرح"},401);
+  if(!await isAuthorized(request,env,"archive"))return json({success:false,message:"غير مصرح"},401);
   try{
     await ensureTable(env);
     const id=Number(new URL(request.url).searchParams.get("id"));
