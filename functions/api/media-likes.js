@@ -40,7 +40,14 @@ export async function onRequestOptions() {
 export async function onRequestGet({ request, env }) {
   try {
     await ensureLikesTable(env);
-    const mediaId = Number(new URL(request.url).searchParams.get("media_id"));
+    const requestedMediaId = new URL(request.url).searchParams.get("media_id");
+    if (requestedMediaId === null) {
+      const rows = await env.DB.prepare(`SELECT m.id AS media_id, COUNT(l.id) AS count
+        FROM club_media m LEFT JOIN club_media_likes l ON l.media_id=m.id
+        WHERE m.media_type='image' GROUP BY m.id`).all();
+      return json({ success: true, counts: (rows.results || []).map(row => ({ media_id: Number(row.media_id), count: Number(row.count || 0) })) });
+    }
+    const mediaId = Number(requestedMediaId);
     if (!Number.isInteger(mediaId) || mediaId < 1) return json({ success: false, message: "رقم الصورة غير صحيح" }, 400);
     if (!await validPhoto(env, mediaId)) return json({ success: false, message: "الصورة غير موجودة" }, 404);
     const fanId = await getFanId(request, env);
