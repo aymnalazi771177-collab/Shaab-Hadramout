@@ -27,7 +27,7 @@
     }
   };
 
-  function closeForm() { $('#archiveAdminModal').hidden = true; }
+  function closeForm() { $('#archiveAdminModal').classList.remove('open'); }
   function openForm(item = null) {
     editing = item ? item.id : null;
     $('#archiveAdminTitle').textContent = item ? 'تعديل مادة من ذاكرة النوارس' : 'إضافة صور أو فيديوهات تاريخية';
@@ -36,7 +36,7 @@
     $('#archiveAdminFile').value = '';
     $('#archiveAdminFile').required = !item;
     $('#archiveAdminFileHelp').textContent = item ? 'اختر ملفاً جديداً فقط إذا أردت استبدال الملف الحالي.' : 'يمكن تحديد عدة صور وفيديوهات دفعة واحدة. الصور حتى 8 ميجابايت والفيديو حتى 50 ميجابايت.';
-    $('#archiveAdminModal').hidden = false;
+    $('#archiveAdminModal').classList.add('open');
   }
 
   $('#addArchiveMedia').addEventListener('click', () => openForm());
@@ -65,6 +65,7 @@
     const title = $('#archiveAdminName').value.trim();
     const description = $('#archiveAdminDescription').value.trim();
     const saveButton = $('#archiveAdminSave');
+    saveButton.disabled = true; saveButton.textContent = 'جارٍ الحفظ...';
     try {
       if (!token()) throw Error('انتهت جلسة الإدارة. سجل الدخول مجدداً.');
       if (!title) throw Error('اكتب عنوان المادة أولاً.');
@@ -97,7 +98,6 @@
       closeForm(); await window.loadArchive();
     } catch (error) { alert(error.message); }
     finally { saveButton.disabled = false; saveButton.textContent = 'حفظ'; }
-    saveButton.disabled = true; saveButton.textContent = 'جارٍ الحفظ...';
   });
 
   window.loadArchive();
