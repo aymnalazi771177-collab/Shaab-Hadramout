@@ -64,7 +64,11 @@ export async function onRequestPost({ request, env }) {
     if (!Number.isInteger(storyId) || storyId < 1 || !visitorKey) return json({ success: false, message: "بيانات الإعجاب غير صحيحة" }, 400);
     if (!await validStory(env, storyId)) return json({ success: false, message: "الحالة غير موجودة" }, 404);
     const visitorHash = await hashVisitorKey(visitorKey);
-    await env.DB.prepare("INSERT OR IGNORE INTO club_reel_likes(story_id,visitor_hash) VALUES(?,?)").bind(storyId, visitorHash).run();
+    if (body.liked === false) {
+      await env.DB.prepare("DELETE FROM club_reel_likes WHERE story_id=? AND visitor_hash=?").bind(storyId, visitorHash).run();
+    } else {
+      await env.DB.prepare("INSERT OR IGNORE INTO club_reel_likes(story_id,visitor_hash) VALUES(?,?)").bind(storyId, visitorHash).run();
+    }
     return json(await getState(env, storyId, visitorKey));
   } catch (error) {
     console.error("Reel likes POST failed", error);
