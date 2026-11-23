@@ -7,6 +7,7 @@
     matches: "المباريات والنتائج",
     transfers: "إدارة الانتقالات",
     media: "الصور والفيديو",
+    archive: "ذاكرة النوارس",
     standings: "ترتيب الدوري", anthems: "أناشيد النادي", history: "تاريخ النادي", notifications: "الإشعارات",
     admins: "المشرفون والصلاحيات"
   };
@@ -27,6 +28,7 @@
     if (name === "matches" && typeof window.loadMatches === "function") window.loadMatches();
     if (name === "transfers" && typeof window.loadTransfers === "function") window.loadTransfers();
     if (name === "media" && typeof window.loadMedia === "function") window.loadMedia();
+    if (name === "archive" && typeof window.loadArchive === "function") window.loadArchive();
     if (name === "standings" && typeof window.loadStandings === "function") window.loadStandings();
     if (name === "anthems" && typeof window.loadAnthems === "function") window.loadAnthems();
     if (name === "history" && typeof window.loadHistory === "function") window.loadHistory();
