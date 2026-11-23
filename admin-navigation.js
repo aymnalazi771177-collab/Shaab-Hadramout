@@ -64,7 +64,7 @@
       if(!response.ok||!data.success)throw new Error("جلسة غير صالحة");
       const admin=data.admin||{},permissions=admin.permissions||[];
       if(admin.owner||permissions.includes("*"))return;
-      const map={carousel:"carousel",news:"news",team:"team",matches:"matches",standings:"standings",transfers:"transfers",media:"media",anthems:"anthems",history:"history",notifications:"notifications",admins:"admins"};
+      const map={carousel:"carousel",news:"news",team:"team",matches:"matches",standings:"standings",transfers:"transfers",media:"media",archive:"media",anthems:"anthems",history:"history",notifications:"notifications",admins:"admins"};
       document.querySelectorAll(".nav button[data-section]").forEach(button=>{const key=button.dataset.section;if(key!=="dashboard"&&!permissions.includes(map[key]))button.hidden=true});
       document.querySelectorAll("[data-go]").forEach(button=>{if(!permissions.includes(button.dataset.go))button.hidden=true});
       const active=document.querySelector(".nav button.active");
