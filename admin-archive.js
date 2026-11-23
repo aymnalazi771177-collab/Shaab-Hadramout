@@ -73,7 +73,7 @@
         const old = items.find(x => x.id === editing);
         let record = { title, description, media_type: old.media_type, media_url: old.media_url, media_key: old.media_key || '' };
         if (files[0]) {
-          const fd = new FormData(); fd.append('images', files[0]);
+          const fd = new FormData(); fd.append('images', files[0]); fd.append('scope', 'archive');
           const upload = await fetch('/api/media', { method: 'POST', headers: { Authorization: 'Bearer ' + token() }, body: fd });
           const ud = await upload.json();
           if (!upload.ok || !ud.success || !ud.media?.[0]) throw Error(ud.message || 'تعذر رفع الملف');
@@ -83,7 +83,7 @@
         const d = await r.json(); if (!r.ok || !d.success) throw Error(d.message || 'تعذر تعديل المادة');
       } else {
         if (!files.length) throw Error('اختر صورة أو فيديو واحداً على الأقل.');
-        const fd = new FormData(); files.forEach(f => fd.append('images', f));
+        const fd = new FormData(); fd.append('scope', 'archive'); files.forEach(f => fd.append('images', f));
         const upload = await fetch('/api/media', { method: 'POST', headers: { Authorization: 'Bearer ' + token() }, body: fd });
         const ud = await upload.json();
         if (!upload.ok || !ud.success || !Array.isArray(ud.media)) throw Error(ud.message || 'تعذر رفع الملفات');
