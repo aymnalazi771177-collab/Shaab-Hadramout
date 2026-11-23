@@ -1,6 +1,6 @@
 (() => {
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],token=()=>sessionStorage.getItem('shaab-admin-token')||'',headers=()=>({Authorization:'Bearer '+token(),'Content-Type':'application/json'});
-const labels={carousel:"السلايدر الرئيسي",news:'الأخبار',team:'اللاعبون والمدرب',matches:'المباريات والنتائج',transfers:'الانتقالات',media:'الصور والفيديو',standings:'ترتيب الدوري',anthems:'الأناشيد',history:'تاريخ النادي',notifications:'الإشعارات'};
+const labels={carousel:"السلايدر الرئيسي",news:'الأخبار',team:'اللاعبون والمدرب',matches:'المباريات والنتائج',transfers:'الانتقالات',media:'الصور والفيديو',archive:'ذاكرة النوارس',standings:'ترتيب الدوري',anthems:'الأناشيد',history:'تاريخ النادي',notifications:'الإشعارات'};
 let standings=[],anthems=[],notifications=[],admins=[],historyData=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function list(path,key){const r=await fetch('/api/'+path,{headers:{Authorization:'Bearer '+token()},cache:'no-store'}),d=await r.json();if(!r.ok||!d.success)throw Error(d.message||'تعذر تحميل البيانات');return d[key]||[]}
