@@ -29,7 +29,7 @@ async function ensureTables(env) {
 }
 
 async function currentFan(request, env) {
-  const token = (request.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "");
+  const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!token) return null;
   const row = await env.DB.prepare(`SELECT f.id, f.full_name, f.active, s.expires_at
     FROM fan_sessions s JOIN fans f ON f.id=s.fan_id
