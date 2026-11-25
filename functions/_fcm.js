@@ -49,13 +49,15 @@ async function createAccessToken(serviceAccount) {
 }
 
 export async function sendFirebaseTopicPush(env, type, payload) {
-  if (!env.FIREBASE_SERVICE_ACCOUNT) {
+  // Support the existing Cloudflare secret name as well as the original name.
+  const serviceAccountSecret = env.FIREBASE_SERVICE_ACCOUNT || env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!serviceAccountSecret) {
     console.warn("Firebase push skipped: FIREBASE_SERVICE_ACCOUNT secret is not configured");
     return { sent: false, reason: "missing_credentials" };
   }
   try {
-    const account = typeof env.FIREBASE_SERVICE_ACCOUNT === "string"
-      ? JSON.parse(env.FIREBASE_SERVICE_ACCOUNT) : env.FIREBASE_SERVICE_ACCOUNT;
+    const account = typeof serviceAccountSecret === "string"
+      ? JSON.parse(serviceAccountSecret) : serviceAccountSecret;
     if (!account.project_id || !account.client_email || !account.private_key) {
       throw new Error("Firebase service account JSON is incomplete");
     }
