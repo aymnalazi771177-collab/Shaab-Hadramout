@@ -1,4 +1,5 @@
 import {isAuthorized} from "../_auth.js";
+import {deleteMediaIfUnreferenced} from "../_media_cleanup.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
@@ -76,8 +77,10 @@ export async function onRequestPut({ request, env }) {
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم الانتقال غير صحيح" }, 400);
     const data = clean(await request.json());
     if (data.error) return json({ success: false, message: data.error }, 400);
+    const previous = await env.DB.prepare("SELECT image_url FROM transfers WHERE id = ?").bind(id).first();
     const result = await env.DB.prepare("UPDATE transfers SET player_name = ?, image_url = ?, direction = ?, transfer_type = ?, from_club = ?, to_club = ?, transfer_date = ?, details = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(data.player_name, data.image_url, data.direction, data.transfer_type, data.from_club, data.to_club, data.transfer_date, data.details, id).run();
     if (!result.meta.changes) return json({ success: false, message: "الانتقال غير موجود" }, 404);
+    await deleteMediaIfUnreferenced(env,[previous?.image_url]);
     return json({ success: true });
   } catch (error) {
     return json({ success: false, message: "تعذر تعديل بيانات الانتقال" }, 500);
@@ -89,8 +92,10 @@ export async function onRequestDelete({ request, env }) {
     await ensureTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم الانتقال غير صحيح" }, 400);
+    const previous = await env.DB.prepare("SELECT image_url FROM transfers WHERE id = ?").bind(id).first();
     const result = await env.DB.prepare("DELETE FROM transfers WHERE id = ?").bind(id).run();
     if (!result.meta.changes) return json({ success: false, message: "الانتقال غير موجود" }, 404);
+    await deleteMediaIfUnreferenced(env,[previous?.image_url]);
     return json({ success: true });
   } catch (error) {
     return json({ success: false, message: "تعذر حذف بيانات الانتقال" }, 500);
