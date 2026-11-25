@@ -1,6 +1,6 @@
 (() => {
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],token=()=>sessionStorage.getItem('shaab-admin-token')||'',headers=()=>({Authorization:'Bearer '+token(),'Content-Type':'application/json'});
-const labels={carousel:"السلايدر الرئيسي",news:'الأخبار',team:'اللاعبون والمدرب',matches:'المباريات والنتائج',transfers:'الانتقالات',media:'الصور والفيديو',archive:'ذاكرة النوارس',standings:'ترتيب الدوري',anthems:'الأناشيد',history:'تاريخ النادي',notifications:'الإشعارات'};
+const labels={live:"البث المباشر",carousel:"السلايدر الرئيسي",news:'الأخبار',team:'اللاعبون والمدرب',matches:'المباريات والنتائج',transfers:'الانتقالات',media:'الصور والفيديو',archive:'ذاكرة النوارس',standings:'ترتيب الدوري',anthems:'الأناشيد',history:'تاريخ النادي',notifications:'الإشعارات'};
 let standings=[],anthems=[],notifications=[],admins=[],historyData=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function list(path,key){const r=await fetch('/api/'+path,{headers:{Authorization:'Bearer '+token()},cache:'no-store'}),d=await r.json();if(!r.ok||!d.success)throw Error(d.message||'تعذر تحميل البيانات');return d[key]||[]}
@@ -30,5 +30,33 @@ function adminEditor(item=null){modal('admin',item?'تعديل صلاحيات ا
 $('#addAdmin').onclick=()=>adminEditor();window.editAdmin=id=>{const x=admins.find(v=>v.id===id);if(x)adminEditor(x)};
 window.delAdmin=async id=>{if(!confirm('حذف حساب المشرف وإنهاء جلساته؟'))return;try{const r=await fetch('/api/admins?id='+id,{method:'DELETE',headers:headers()}),d=await r.json();if(!r.ok||!d.success)throw Error(d.message);await loadAdmins()}catch(e){alert(e.message)}};
 $('#editForm').addEventListener('submit',async e=>{if(!['standing','anthem','history','notification','admin'].includes(kind))return;e.preventDefault();e.stopImmediatePropagation();const data=Object.fromEntries(new FormData(e.target).entries());try{let url='',method='POST',payload={...data};if(kind==='standing'){url='/api/standings'+(editing!==null?'?id='+editing:'');method=editing!==null?'PUT':'POST'}else if(kind==='anthem'){url='/api/anthems'+(editing!==null?'?id='+editing:'');method=editing!==null?'PUT':'POST';const old=anthems.find(x=>x.id===editing);payload.file_key=old?.file_key||'';const file=$('#anthemFile')?.files?.[0];if(file){const fd=new FormData();fd.append('images',file);fd.append('scope','anthems');const up=await fetch('/api/media',{method:'POST',headers:{Authorization:'Bearer '+token()},body:fd}),ud=await up.json();if(!up.ok||!ud.success||!ud.media?.[0])throw Error(ud.message||'تعذر رفع الصوت');payload.audio_url=ud.media[0].url;payload.file_key=ud.media[0].key}if(!payload.audio_url)throw Error('ارفع ملفاً صوتياً أو أدخل رابطاً مباشراً')}else if(kind==='history'){url='/api/history';method='PUT'}else if(kind==='notification'){url='/api/notifications';method='POST'}else if(kind==='admin'){url='/api/admins'+(editing!==null?'?id='+editing:'');method=editing!==null?'PUT':'POST';payload.permissions=$$('#formFields [name="adminPermission"]:checked').map(x=>x.value)}const r=await fetch(url,{method,headers:headers(),body:JSON.stringify(payload)}),d=await r.json();if(!r.ok||!d.success)throw Error(d.message||'تعذر الحفظ');closeModal();e.target.reset();if(kind==='standing')await loadStandings();if(kind==='anthem')await loadAnthems();if(kind==='history')await loadHistory();if(kind==='notification')await loadNotifications();if(kind==='admin')await loadAdmins()}catch(err){alert(err.message)}},true);
+
+async function loadLiveStreamAdmin(){
+ const status=$('#liveAdminStatus'),message=$('#liveAdminMessage');
+ try{
+  const r=await fetch('/api/live?refresh='+Date.now(),{cache:'no-store'}),d=await r.json();
+  if(!r.ok||!d.success)throw Error(d.message||'تعذر تحميل إعدادات البث');
+  const v=d.stream||{};
+  $('#liveTitle').value=v.title||'';$('#liveUrl').value=v.stream_url||'';$('#liveType').value=v.stream_type||'youtube';$('#liveEnabled').checked=!!Number(v.enabled);
+  if(status){status.textContent=Number(v.enabled)?'البث مفعّل':'البث متوقف';status.style.background=Number(v.enabled)?'#e9f8ef':'#f1f1f4';status.style.color=Number(v.enabled)?'#197344':'#666'}
+  if(message)message.textContent=Number(v.enabled)?'البث منشور حالياً ويظهر للزوار.':'البث متوقف ولن يظهر مشغل للزوار.';
+ }catch(e){if(status)status.textContent='تعذر تحميل الحالة';if(message)message.textContent=e.message}
+}
+async function saveLiveStreamAdmin(forceOff=false){
+ const button=$('#saveLiveStream'),message=$('#liveAdminMessage');
+ const payload={title:$('#liveTitle').value.trim(),stream_url:$('#liveUrl').value.trim(),stream_type:$('#liveType').value,enabled:forceOff?false:$('#liveEnabled').checked};
+ try{
+  button.disabled=true;button.textContent='جارٍ الحفظ...';
+  const r=await fetch('/api/live',{method:'PUT',headers:headers(),body:JSON.stringify(payload)}),d=await r.json();
+  if(!r.ok||!d.success)throw Error(d.message||'تعذر حفظ إعدادات البث');
+  $('#liveEnabled').checked=!!Number(d.stream.enabled);
+  const status=$('#liveAdminStatus');if(status){status.textContent=Number(d.stream.enabled)?'البث مفعّل':'البث متوقف';status.style.background=Number(d.stream.enabled)?'#e9f8ef':'#f1f1f4';status.style.color=Number(d.stream.enabled)?'#197344':'#666'}
+  if(message)message.textContent=forceOff?'تم إيقاف البث.':'تم حفظ إعدادات البث بنجاح.';
+ }catch(e){alert(e.message)}finally{button.disabled=false;button.textContent='حفظ إعدادات البث'}
+}
+$('#saveLiveStream')?.addEventListener('click',()=>saveLiveStreamAdmin(false));
+$('#stopLiveStream')?.addEventListener('click',()=>{if(confirm('هل تريد إيقاف البث المباشر عن جميع المستخدمين؟'))saveLiveStreamAdmin(true)});
+window.loadLiveStreamAdmin=loadLiveStreamAdmin;
+
 window.loadStandings();window.loadAnthems();window.loadHistory();window.loadNotifications();window.loadAdmins();
 })();
