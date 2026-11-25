@@ -94,8 +94,8 @@ export async function onRequestPut({ request, env }) {
       await env.DB.prepare("DELETE FROM news_images WHERE news_id = ?").bind(id).run();
       if (images.length) await env.DB.batch(images.map((image, index) => env.DB.prepare("INSERT INTO news_images (news_id, url, sort_order) VALUES (?, ?, ?)").bind(id, image.url, index)));
     }
-    await deleteMediaIfUnreferenced(env, [previous.image_url, ...(previousImages.results || []).map(image => image.url)]);
-    return json({ success: true });
+    const mediaCleanup = await deleteMediaIfUnreferenced(env, [previous.image_url, ...(previousImages.results || []).map(image => image.url)]);
+    return json({ success: true, mediaCleanup });
   } catch {
     return json({ success: false, message: "تعذر تعديل الخبر" }, 500);
   }
