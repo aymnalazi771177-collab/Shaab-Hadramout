@@ -13,20 +13,25 @@ export async function deleteMediaIfUnreferenced(env,values=[]){
   if(!keys.length)return {deleted:0,kept:0};
   const tables=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
   const tableNames=(tables.results||[]).map(row=>row.name).filter(name=>typeof name==="string"&&name!=="club_reels");
+  const sources=[];
+  for(const table of tableNames){
+    const tableSql=quoteIdentifier(table);
+    const info=await env.DB.prepare("PRAGMA table_info("+tableSql+")").all();
+    for(const column of info.results||[]){
+      if(!/(url|key|image|media|thumb|logo|file|audio|photo|video|cover|poster|avatar|src|path)/i.test(String(column.name||"")))continue;
+      const columnSql=quoteIdentifier(column.name);
+      sources.push("SELECT 1 AS found FROM "+tableSql+" WHERE CAST("+columnSql+" AS TEXT) LIKE ?");
+    }
+  }
   let deleted=0,kept=0;
   for(const key of keys){
     let referenced=false;
-    for(const table of tableNames){
-      const tableSql=quoteIdentifier(table);
-      const info=await env.DB.prepare("PRAGMA table_info("+tableSql+")").all();
-      const columns=(info.results||[]).filter(column=>/(url|key|image|media|thumb|logo|file|audio|photo|video)/i.test(String(column.name||"")));
-      for(const column of columns){
-        const columnSql=quoteIdentifier(column.name);
-        const found=await env.DB.prepare("SELECT 1 AS found FROM "+tableSql+" WHERE CAST("+columnSql+" AS TEXT)=? OR CAST("+columnSql+" AS TEXT) LIKE ? LIMIT 1")
-          .bind(key,"%"+key+"%").first();
-        if(found){referenced=true;break}
-      }
-      if(referenced)break;
+    for(let offset=0;offset<sources.length&&!referenced;offset+=80){
+      const chunk=sources.slice(offset,offset+80);
+      if(!chunk.length)continue;
+      const sql=chunk.join(" UNION ALL ")+" LIMIT 1";
+      const found=await env.DB.prepare(sql).bind(...chunk.map(()=>"%"+key+"%")).first();
+      referenced=Boolean(found);
     }
     if(referenced){kept++;continue}
     await env.NEWS_MEDIA.delete(key);
