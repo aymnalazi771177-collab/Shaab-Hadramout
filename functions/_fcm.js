@@ -3,11 +3,11 @@ let cachedAccessToken = null;
 let cachedTokenExpiry = 0;
 
 const b64url = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes)))
-  .replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
+  .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const encodeJson = value => b64url(encoder.encode(JSON.stringify(value)));
 
 function pemToBytes(pem) {
-  const clean = String(pem || "").replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\\s/g, "");
+  const clean = String(pem || "").replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, "");
   const binary = atob(clean);
   return Uint8Array.from(binary, char => char.charCodeAt(0));
 }
