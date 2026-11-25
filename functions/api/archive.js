@@ -1,4 +1,5 @@
 import {isAuthorized} from "../_auth.js";
+import {deleteMediaIfUnreferenced} from "../_media_cleanup.js";
 
 function json(data,status=200){
   return Response.json(data,{status,headers:{
@@ -63,10 +64,10 @@ export async function onRequestPut({request,env}){
     const id=Number(new URL(request.url).searchParams.get("id"));
     if(!Number.isInteger(id)||id<1)return json({success:false,message:"رقم المادة غير صحيح"},400);
     const d=clean(await request.json());if(d.error)return json({success:false,message:d.error},400);
-    const old=await env.DB.prepare("SELECT media_key FROM club_archive_media WHERE id=?").bind(id).first();
+    const old=await env.DB.prepare("SELECT media_key,media_url FROM club_archive_media WHERE id=?").bind(id).first();
     if(!old)return json({success:false,message:"المادة غير موجودة"},404);
     await env.DB.prepare("UPDATE club_archive_media SET title=?,description=?,media_type=?,media_url=?,media_key=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(d.title,d.description,d.media_type,d.media_url,d.media_key,id).run();
-    if(old.media_key&&old.media_key!==d.media_key&&env.NEWS_MEDIA)await env.NEWS_MEDIA.delete(old.media_key);
+    if(old.media_key!==d.media_key||old.media_url!==d.media_url)await deleteMediaIfUnreferenced(env,[old.media_key,old.media_url]);
     return json({success:true});
   }catch(error){console.error("Archive PUT failed",error);return json({success:false,message:"تعذر تعديل مادة ذاكرة النوارس"},500)}
 }
@@ -79,7 +80,7 @@ export async function onRequestDelete({request,env}){
     const old=await env.DB.prepare("SELECT media_key FROM club_archive_media WHERE id=?").bind(id).first();
     if(!old)return json({success:false,message:"المادة غير موجودة"},404);
     await env.DB.prepare("DELETE FROM club_archive_media WHERE id=?").bind(id).run();
-    if(old.media_key&&env.NEWS_MEDIA)await env.NEWS_MEDIA.delete(old.media_key);
+    await deleteMediaIfUnreferenced(env,[old.media_key,old.media_url]);
     return json({success:true});
   }catch(error){console.error("Archive DELETE failed",error);return json({success:false,message:"تعذر حذف مادة ذاكرة النوارس"},500)}
 }
