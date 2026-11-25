@@ -1,6 +1,7 @@
 import {isAuthorized} from "../_auth.js";
 import {sendClubPush} from "../_push.js";
 import {recordClubNotification} from "../_notifications.js";
+import {deleteMediaIfUnreferenced} from "../_media_cleanup.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
@@ -82,6 +83,9 @@ export async function onRequestPut({ request, env }) {
     if (!title) return json({ success: false, message: "عنوان الخبر مطلوب" }, 400);
     const images = cleanImages(body.images);
     const hasImages = Array.isArray(body.images);
+    const previous = await env.DB.prepare("SELECT image_url FROM news WHERE id = ?").bind(id).first();
+    if (!previous) return json({ success: false, message: "الخبر غير موجود" }, 404);
+    const previousImages = hasImages ? await env.DB.prepare("SELECT url FROM news_images WHERE news_id = ?").bind(id).all() : { results: [] };
     const mainImage = body.image_url !== undefined ? String(body.image_url || "") : (hasImages ? (images[0]?.url || "") : "");
     const isUrgent = body.is_urgent === true || body.is_urgent === 1 || body.is_urgent === "1" ? 1 : 0;
     const result = await env.DB.prepare("UPDATE news SET title = ?, content = ?, image_url = ?, is_urgent = ? WHERE id = ?").bind(title, String(body.content || ""), mainImage, isUrgent, id).run();
@@ -90,6 +94,7 @@ export async function onRequestPut({ request, env }) {
       await env.DB.prepare("DELETE FROM news_images WHERE news_id = ?").bind(id).run();
       if (images.length) await env.DB.batch(images.map((image, index) => env.DB.prepare("INSERT INTO news_images (news_id, url, sort_order) VALUES (?, ?, ?)").bind(id, image.url, index)));
     }
+    await deleteMediaIfUnreferenced(env, [previous.image_url, ...(previousImages.results || []).map(image => image.url)]);
     return json({ success: true });
   } catch {
     return json({ success: false, message: "تعذر تعديل الخبر" }, 500);
@@ -101,9 +106,12 @@ export async function onRequestDelete({ request, env }) {
     await ensureImagesTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم الخبر غير صحيح" }, 400);
+    const previous = await env.DB.prepare("SELECT image_url FROM news WHERE id = ?").bind(id).first();
+    if (!previous) return json({ success: false, message: "الخبر غير موجود" }, 404);
+    const previousImages = await env.DB.prepare("SELECT url FROM news_images WHERE news_id = ?").bind(id).all();
     await env.DB.prepare("DELETE FROM news_images WHERE news_id = ?").bind(id).run();
-    const result = await env.DB.prepare("DELETE FROM news WHERE id = ?").bind(id).run();
-    if (!result.meta.changes) return json({ success: false, message: "الخبر غير موجود" }, 404);
+    await env.DB.prepare("DELETE FROM news WHERE id = ?").bind(id).run();
+    await deleteMediaIfUnreferenced(env, [previous.image_url, ...(previousImages.results || []).map(image => image.url)]);
     return json({ success: true });
   } catch {
     return json({ success: false, message: "تعذر الحذف" }, 500);
