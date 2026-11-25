@@ -1,5 +1,6 @@
 import {isAuthorized} from "../_auth.js";
 import {sendClubPush} from "../_push.js";
+import {recordClubNotification} from "../_notifications.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
@@ -63,6 +64,7 @@ export async function onRequestPost({ request, env }) {
     const result = await env.DB.prepare("INSERT INTO news (title, content, image_url, is_urgent) VALUES (?, ?, ?, ?)").bind(title, String(body.content || ""), mainImage, isUrgent).run();
     const id = result.meta.last_row_id;
     if (images.length) await env.DB.batch(images.map((image, index) => env.DB.prepare("INSERT INTO news_images (news_id, url, sort_order) VALUES (?, ?, ?)").bind(id, image.url, index)));
+    await recordClubNotification(env, {title: isUrgent ? "خبر عاجل من نادي شعب حضرموت" : "خبر جديد من نادي شعب حضرموت", body: title, type: "news", referenceId: id});
     await sendClubPush(env, "news", {title: isUrgent ? "خبر عاجل من نادي شعب حضرموت" : "خبر جديد من نادي شعب حضرموت", body: title, url: "./?newsId=" + id, newsId: String(id)});
     return json({ success: true, id }, 201);
   } catch {
