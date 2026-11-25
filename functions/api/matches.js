@@ -131,7 +131,7 @@ export async function onRequestPut({ request, env }) {
     const scoreChanged = previous.home_score !== data.home_score || previous.away_score !== data.away_score;
     if (data.status === "live" && (previous.status !== "live" || scoreChanged)) {
       const body = previous.status !== "live" ? "بدأت الآن مباراة شعب حضرموت أمام " + data.opponent : "تغيرت النتيجة: " + data.home_score + " - " + data.away_score;
-      await sendClubPush(env, "matches", {title:"تنبيه مباراة شعب حضرموت",body,url:"/"});
+      await sendClubPush(env, "matches", {title:"تنبيه مباراة شعب حضرموت",body,url:"./"});
     } else if (data.status === "finished" && previous.status !== "finished") {
       await sendClubPush(env, "matches", {title:"انتهت مباراة شعب حضرموت",body:data.opponent + " — النتيجة " + (data.is_home ? data.home_score + " - " + data.away_score : data.away_score + " - " + data.home_score),url:"/"});
     }
