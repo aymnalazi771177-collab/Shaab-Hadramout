@@ -12,7 +12,7 @@ export async function deleteMediaIfUnreferenced(env,values=[]){
   const keys=[...new Set((Array.isArray(values)?values:[values]).map(mediaKey).filter(Boolean))];
   if(!keys.length)return {deleted:0,kept:0};
   const tables=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
-  const tableNames=(tables.results||[]).map(row=>row.name).filter(name=>typeof name==="string");
+  const tableNames=(tables.results||[]).map(row=>row.name).filter(name=>typeof name==="string"&&name!=="club_reels");
   let deleted=0,kept=0;
   for(const key of keys){
     let referenced=false;
