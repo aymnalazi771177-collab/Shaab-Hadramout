@@ -1,4 +1,5 @@
 import {isAuthorized} from "../_auth.js";
+import {deleteMediaIfUnreferenced} from "../_media_cleanup.js";
 const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,PUT,DELETE,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization"};
 const json=(data,status=200)=>Response.json(data,{status,headers});
 async function ensure(env){
@@ -49,12 +50,12 @@ export async function onRequestPut({request,env}){
  if(!await isAuthorized(request,env,"reels"))return json({success:false,message:"غير مصرح"},401);
  try{await ensure(env);const id=Number(new URL(request.url).searchParams.get("id"));if(!Number.isInteger(id)||id<1)return json({success:false,message:"رقم الريل غير صحيح"},400);
   const d=cleanGroup(await request.json());if(d.error)return json({success:false,message:d.error},400);
-  const old=await env.DB.prepare("SELECT id,media_key,thumbnail_key FROM club_reel_items WHERE group_id=?").bind(id).all();const exists=await env.DB.prepare("SELECT id FROM club_reel_groups WHERE id=?").bind(id).first();if(!exists)return json({success:false,message:"الريل غير موجود"},404);
+  const old=await env.DB.prepare("SELECT id,media_key,media_url,thumbnail_key,thumbnail_url FROM club_reel_items WHERE group_id=?").bind(id).all();const exists=await env.DB.prepare("SELECT id FROM club_reel_groups WHERE id=?").bind(id).first();if(!exists)return json({success:false,message:"الريل غير موجود"},404);
   await env.DB.prepare("UPDATE club_reel_groups SET title=?,sort_order=?,active=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(d.title,d.sort_order,d.active,id).run();
   const kept=new Set(d.stories.filter(s=>s.id).map(s=>s.id));
-  for(const item of old.results||[])if(!kept.has(Number(item.id))){await env.DB.prepare("DELETE FROM club_reel_items WHERE id=? AND group_id=?").bind(item.id,id).run();if(env.NEWS_MEDIA){if(item.media_key)await env.NEWS_MEDIA.delete(item.media_key);if(item.thumbnail_key)await env.NEWS_MEDIA.delete(item.thumbnail_key)}}
+  for(const item of old.results||[])if(!kept.has(Number(item.id))){await env.DB.prepare("DELETE FROM club_reel_items WHERE id=? AND group_id=?").bind(item.id,id).run();await deleteMediaIfUnreferenced(env,[item.media_key,item.media_url,item.thumbnail_key,item.thumbnail_url])}
   for(const s of d.stories){
-   if(s.id){const prior=(old.results||[]).find(x=>Number(x.id)===s.id);if(!prior)continue;await env.DB.prepare("UPDATE club_reel_items SET caption=?,media_url=?,media_type=?,media_key=?,thumbnail_url=?,thumbnail_key=?,sort_order=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND group_id=?").bind(s.caption,s.media_url,s.media_type,s.media_key,s.thumbnail_url,s.thumbnail_key,s.sort_order,s.id,id).run();if(env.NEWS_MEDIA){for(const key of [prior.media_key,prior.thumbnail_key])if(key&&key!==s.media_key&&key!==s.thumbnail_key)await env.NEWS_MEDIA.delete(key)}}
+   if(s.id){const prior=(old.results||[]).find(x=>Number(x.id)===s.id);if(!prior)continue;await env.DB.prepare("UPDATE club_reel_items SET caption=?,media_url=?,media_type=?,media_key=?,thumbnail_url=?,thumbnail_key=?,sort_order=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND group_id=?").bind(s.caption,s.media_url,s.media_type,s.media_key,s.thumbnail_url,s.thumbnail_key,s.sort_order,s.id,id).run();await deleteMediaIfUnreferenced(env,[prior.media_key,prior.media_url,prior.thumbnail_key,prior.thumbnail_url])}
    else await env.DB.prepare("INSERT INTO club_reel_items(group_id,caption,media_url,media_type,media_key,thumbnail_url,thumbnail_key,sort_order) VALUES(?,?,?,?,?,?,?,?)").bind(id,s.caption,s.media_url,s.media_type,s.media_key,s.thumbnail_url,s.thumbnail_key,s.sort_order).run();
   }
   return json({success:true});
@@ -63,11 +64,11 @@ export async function onRequestPut({request,env}){
 export async function onRequestDelete({request,env}){
  if(!await isAuthorized(request,env,"reels"))return json({success:false,message:"غير مصرح"},401);
  try{await ensure(env);const id=Number(new URL(request.url).searchParams.get("id"));if(!Number.isInteger(id)||id<1)return json({success:false,message:"رقم الريل غير صحيح"},400);
-  const old=await env.DB.prepare("SELECT media_key,thumbnail_key FROM club_reel_items WHERE group_id=?").bind(id).all();const exists=await env.DB.prepare("SELECT id,legacy_reel_id FROM club_reel_groups WHERE id=?").bind(id).first();if(!exists)return json({success:false,message:"الريل غير موجود"},404);
+  const old=await env.DB.prepare("SELECT media_key,media_url,thumbnail_key,thumbnail_url FROM club_reel_items WHERE group_id=?").bind(id).all();const exists=await env.DB.prepare("SELECT id,legacy_reel_id FROM club_reel_groups WHERE id=?").bind(id).first();if(!exists)return json({success:false,message:"الريل غير موجود"},404);
   await env.DB.prepare("DELETE FROM club_reel_items WHERE group_id=?").bind(id).run();await env.DB.prepare("DELETE FROM club_reel_groups WHERE id=?").bind(id).run();
   // Remove the migrated legacy row too, otherwise ensure() would recreate this deleted group on the next request.
   if(exists.legacy_reel_id)await env.DB.prepare("DELETE FROM club_reels WHERE id=?").bind(exists.legacy_reel_id).run();
-  if(env.NEWS_MEDIA)for(const item of old.results||[]){if(item.media_key)await env.NEWS_MEDIA.delete(item.media_key);if(item.thumbnail_key)await env.NEWS_MEDIA.delete(item.thumbnail_key)}
+  for(const item of old.results||[])await deleteMediaIfUnreferenced(env,[item.media_key,item.media_url,item.thumbnail_key,item.thumbnail_url])
   return json({success:true});
  }catch(e){console.error("Reels DELETE",e);return json({success:false,message:"تعذر حذف الريل"},500)}
 }
