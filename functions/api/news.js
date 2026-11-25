@@ -1,4 +1,5 @@
 import {isAuthorized} from "../_auth.js";
+import {sendClubPush} from "../_push.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
@@ -8,6 +9,10 @@ function json(data, status = 200) {
 }
 async function ensureImagesTable(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS news_images (id INTEGER PRIMARY KEY AUTOINCREMENT, news_id INTEGER NOT NULL, url TEXT NOT NULL, sort_order INTEGER NOT NULL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)").run();
+  const columns = await env.DB.prepare("PRAGMA table_info(news)").all();
+  if (!(columns.results || []).some(column => column.name === "is_urgent")) {
+    await env.DB.prepare("ALTER TABLE news ADD COLUMN is_urgent INTEGER NOT NULL DEFAULT 0").run();
+  }
 }
 function cleanImages(value) {
   if (!Array.isArray(value)) return [];
@@ -30,7 +35,7 @@ export async function onRequestOptions() {
 export async function onRequestGet({ env }) {
   try {
     await ensureImagesTable(env);
-    const { results } = await env.DB.prepare("SELECT id, title, content, image_url, created_at FROM news ORDER BY id DESC").all();
+    const { results } = await env.DB.prepare("SELECT id, title, content, image_url, created_at, is_urgent FROM news ORDER BY id DESC").all();
     const images = results.length
       ? (await env.DB.prepare("SELECT news_id, url, sort_order FROM news_images WHERE news_id IN (" + results.map(() => "?").join(",") + ") ORDER BY sort_order, id").bind(...results.map(item => item.id)).all()).results
       : [];
@@ -54,9 +59,11 @@ export async function onRequestPost({ request, env }) {
     const images = cleanImages(body.images);
     const legacyImage = String(body.image_url || "");
     const mainImage = legacyImage || images[0]?.url || "";
-    const result = await env.DB.prepare("INSERT INTO news (title, content, image_url) VALUES (?, ?, ?)").bind(title, String(body.content || ""), mainImage).run();
+    const isUrgent = body.is_urgent === true || body.is_urgent === 1 || body.is_urgent === "1" ? 1 : 0;
+    const result = await env.DB.prepare("INSERT INTO news (title, content, image_url, is_urgent) VALUES (?, ?, ?, ?)").bind(title, String(body.content || ""), mainImage, isUrgent).run();
     const id = result.meta.last_row_id;
     if (images.length) await env.DB.batch(images.map((image, index) => env.DB.prepare("INSERT INTO news_images (news_id, url, sort_order) VALUES (?, ?, ?)").bind(id, image.url, index)));
+    if (isUrgent) await sendClubPush(env, "news", {title:"خبر عاجل من نادي شعب حضرموت",body:title,url:"/"});
     return json({ success: true, id }, 201);
   } catch {
     return json({ success: false, message: "تعذر حفظ الخبر" }, 500);
@@ -74,7 +81,8 @@ export async function onRequestPut({ request, env }) {
     const images = cleanImages(body.images);
     const hasImages = Array.isArray(body.images);
     const mainImage = body.image_url !== undefined ? String(body.image_url || "") : (hasImages ? (images[0]?.url || "") : "");
-    const result = await env.DB.prepare("UPDATE news SET title = ?, content = ?, image_url = ? WHERE id = ?").bind(title, String(body.content || ""), mainImage, id).run();
+    const isUrgent = body.is_urgent === true || body.is_urgent === 1 || body.is_urgent === "1" ? 1 : 0;
+    const result = await env.DB.prepare("UPDATE news SET title = ?, content = ?, image_url = ?, is_urgent = ? WHERE id = ?").bind(title, String(body.content || ""), mainImage, isUrgent, id).run();
     if (!result.meta.changes) return json({ success: false, message: "الخبر غير موجود" }, 404);
     if (hasImages) {
       await env.DB.prepare("DELETE FROM news_images WHERE news_id = ?").bind(id).run();
