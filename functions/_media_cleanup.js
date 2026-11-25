@@ -1,11 +1,11 @@
-const KEY_PATTERN=/^[a-f0-9-]{36}\\.(jpg|png|webp|gif|mp4|webm|mov|mp3|m4a|ogg|wav|aac)$/i;
+const KEY_PATTERN=/^[a-f0-9-]{36}\.(jpg|png|webp|gif|mp4|webm|mov|mp3|m4a|ogg|wav|aac)$/i;
 function mediaKey(value){
   if(typeof value!=="string")return "";
   const raw=value.trim();
   if(KEY_PATTERN.test(raw))return raw;
   try{
     const pathname=new URL(raw,"https://local.invalid").pathname;
-    const match=pathname.match(/\\/api\\/media\\/([^/]+)$/i);
+    const match=pathname.match(/\/api\/media\/([^/]+)$/i);
     if(!match)return "";
     const key=decodeURIComponent(match[1]);
     return KEY_PATTERN.test(key)?key:"";
