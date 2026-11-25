@@ -63,7 +63,7 @@ export async function onRequestPost({ request, env }) {
     const result = await env.DB.prepare("INSERT INTO news (title, content, image_url, is_urgent) VALUES (?, ?, ?, ?)").bind(title, String(body.content || ""), mainImage, isUrgent).run();
     const id = result.meta.last_row_id;
     if (images.length) await env.DB.batch(images.map((image, index) => env.DB.prepare("INSERT INTO news_images (news_id, url, sort_order) VALUES (?, ?, ?)").bind(id, image.url, index)));
-    if (isUrgent) await sendClubPush(env, "news", {title:"خبر عاجل من نادي شعب حضرموت",body:title,url:"/"});
+    if (isUrgent) await sendClubPush(env, "news", {title:"خبر عاجل من نادي شعب حضرموت",body:title,url:"./"});
     return json({ success: true, id }, 201);
   } catch {
     return json({ success: false, message: "تعذر حفظ الخبر" }, 500);
