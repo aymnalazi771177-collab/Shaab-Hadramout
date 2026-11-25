@@ -1,9 +1,9 @@
-const KEY_PATTERN=/^[a-f0-9-]{36}\\.(jpg|png|webp|gif|mp4|webm|mov|mp3|m4a|ogg|wav|aac)$/i;
+const KEY_PATTERN=/^[a-f0-9-]{36}\.(jpg|png|webp|gif|mp4|webm|mov|mp3|m4a|ogg|wav|aac)$/i;
 function mediaKey(value){
   if(typeof value!=="string")return "";
   const valueTrimmed=value.trim();
   if(KEY_PATTERN.test(valueTrimmed))return valueTrimmed;
-  const match=valueTrimmed.match(/\\/api\\/media\\/([a-f0-9-]{36}\\.(?:jpg|png|webp|gif|mp4|webm|mov|mp3|m4a|ogg|wav|aac))(?:[?#].*)?$/i);
+  const match=valueTrimmed.match(/\/api\/media\/([a-f0-9-]{36}\.(?:jpg|png|webp|gif|mp4|webm|mov|mp3|m4a|ogg|wav|aac))(?:[?#].*)?$/i);
   return match?match[1]:"";
 }
 function quoteIdentifier(value){return '"'+String(value).replace(/"/g,'""')+'"'}
