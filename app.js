@@ -1,6 +1,6 @@
-const pages=['home','news','team','matches','more','transfers','media','anthems','history'];const nav=[...document.querySelectorAll('.nav-item')];const toast=document.getElementById('toast');
+const pages=['home','news','team','matches','more','transfers','media','anthems','history','live'];const nav=[...document.querySelectorAll('.nav-item')];const toast=document.getElementById('toast');
 function notify(message){toast.textContent=message;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),2300)}
-function showPage(name){pages.forEach(p=>document.getElementById('page-'+p).classList.toggle('active',p===name));nav.forEach(b=>b.classList.toggle('active',(['transfers','media','anthems','history'].includes(name)?'more':name)));document.body.classList.toggle('page-home',name==='home');if(name==='team')loadClubPlayers();if(name==='transfers')loadClubTransfers();if(name==='media')loadClubMedia();if(name==='matches')loadClubStandings();if(name==='anthems')loadClubAnthems();if(name==='history')loadClubHistory();window.scrollTo({top:0,behavior:'smooth'})}
+function showPage(name){pages.forEach(p=>document.getElementById('page-'+p).classList.toggle('active',p===name));nav.forEach(b=>b.classList.toggle('active',(['transfers','media','anthems','history'].includes(name)?'more':name)));document.body.classList.toggle('page-home',name==='home');if(name==='team')loadClubPlayers();if(name==='transfers')loadClubTransfers();if(name==='media')loadClubMedia();if(name==='matches')loadClubStandings();if(name==='anthems')loadClubAnthems();if(name==='history')loadClubHistory();if(name==='live')loadClubLiveStream();window.scrollTo({top:0,behavior:'smooth'})}
 nav.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 document.querySelectorAll('.home-quick-item[data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 document.querySelectorAll('[data-open-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.openPage)));
@@ -67,6 +67,51 @@ function renderClubMatches(items){
  if(upcomingBox){if(!upcoming)upcomingBox.innerHTML='<article class="upcoming-card"><p class="sample-note">لا توجد مباراة قادمة معلنة حالياً.</p></article>';else{const club={name:'شعب حضرموت',logo:clubImageUrl(upcoming.home_logo_url)},rival={name:upcoming.opponent,logo:clubImageUrl(upcoming.opponent_logo_url)};const left=Number(upcoming.is_home)===0?rival:club,right=Number(upcoming.is_home)===0?club:rival;upcomingBox.innerHTML='<article class="upcoming-card"><div class="versus-banner"><div class="versus-teams"><div><img src="'+escapeMatchHtml(left.logo)+'" alt=""><b>'+escapeMatchHtml(left.name)+'</b></div><strong>VS</strong><div><img src="'+escapeMatchHtml(right.logo)+'" alt=""><b>'+escapeMatchHtml(right.name)+'</b></div></div></div><div class="match-meta"><span>'+escapeMatchHtml(matchDateLabel(upcoming.match_date))+'</span><i></i><span>'+escapeMatchHtml(upcoming.match_time||'يحدد لاحقاً')+'</span></div><p style="text-align:center;margin:8px 0;color:#777">'+escapeMatchHtml([upcoming.competition,upcoming.venue].filter(Boolean).join(' · '))+'</p><button class="details-btn" data-match-details data-notes="'+escapeMatchHtml(upcoming.notes||'')+'">تفاصيل المباراة</button></article>'}} 
  const homeUpcoming=document.getElementById('homeUpcomingMatchCard');if(homeUpcoming&&upcomingBox)homeUpcoming.innerHTML=upcomingBox.innerHTML;
  if(resultsBox)resultsBox.innerHTML=finished.length?finished.map(m=>{const club={name:'شعب حضرموت',logo:clubImageUrl(m.home_logo_url)},rival={name:m.opponent,logo:clubImageUrl(m.opponent_logo_url)};const left=Number(m.is_home)===0?rival:club,right=Number(m.is_home)===0?club:rival;const score=Number(m.is_home)===0?String(m.away_score??'0')+' - '+String(m.home_score??'0'):String(m.home_score??'0')+' - '+String(m.away_score??'0');return '<article class="result-card"><div><div class="result-crest"><img src="'+escapeMatchHtml(left.logo)+'" alt=""></div><b>'+escapeMatchHtml(left.name)+'</b></div><strong>'+escapeMatchHtml(score)+'</strong><div><div class="opponent-crest small"><img src="'+escapeMatchHtml(right.logo)+'" alt=""></div><b>'+escapeMatchHtml(right.name)+'</b></div></article>'}).join(''):'<p class="sample-note">لا توجد نتائج مسجلة حتى الآن.</p>';
+}
+
+
+let liveHlsInstance=null;
+async function loadClubLiveStream(){
+ const box=document.getElementById('liveStreamPlayer'),title=document.getElementById('liveStreamTitle'),hint=document.getElementById('liveStreamHint'),homeStatus=document.getElementById('homeLiveStatus');
+ if(!box)return;
+ if(liveHlsInstance){liveHlsInstance.destroy();liveHlsInstance=null}
+ box.innerHTML='<p class="sample-note">جارٍ تحميل البث المباشر...</p>';
+ try{
+  const response=await fetch(clubBase+'/api/live?refresh='+Date.now(),{cache:'no-store'}),data=await response.json();
+  if(!response.ok||!data.success)throw Error('تعذر الاتصال بإعدادات البث');
+  const stream=data.stream||{};
+  if(!Number(stream.enabled)||!stream.stream_url){
+   box.innerHTML='<div class="live-offline"><span>◉</span><b>لا يوجد بث مباشر حالياً</b><small>تابعنا، سنعلن عن البث عند انطلاقه.</small></div>';
+   if(title)title.textContent='البث المباشر لنادي شعب حضرموت';
+   if(hint)hint.textContent='لا يوجد بث مباشر متاح في الوقت الحالي.';
+   if(homeStatus)homeStatus.textContent='لا يوجد بث مباشر حالياً';
+   return;
+  }
+  const label=stream.title||'البث المباشر لنادي شعب حضرموت';
+  if(title)title.textContent=label;
+  if(hint)hint.textContent='بث مباشر من نادي شعب حضرموت';
+  if(homeStatus)homeStatus.textContent='البث متاح الآن · اضغط للمشاهدة';
+  if(stream.stream_type==='youtube'){
+   let videoId='';
+   try{const u=new URL(stream.stream_url);if(u.hostname.includes('youtu.be'))videoId=u.pathname.split('/').filter(Boolean)[0]||'';else if(u.pathname.includes('/live/'))videoId=u.pathname.split('/live/')[1].split('/')[0];else if(u.pathname.includes('/embed/'))videoId=u.pathname.split('/embed/')[1].split('/')[0];else videoId=u.searchParams.get('v')||''}catch{}
+   const embed=videoId?'https://www.youtube-nocookie.com/embed/'+encodeURIComponent(videoId)+'?autoplay=0&playsinline=1':'';
+   if(!embed)throw Error('رابط يوتيوب غير صالح. استخدم رابط فيديو أو بث مباشر.');
+   box.innerHTML='<iframe src="'+embed+'" title="'+escapeMatchHtml(label)+'" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>';
+  }else if(stream.stream_type==='mp4'){
+   box.innerHTML='<video controls playsinline preload="metadata" src="'+escapeMatchHtml(stream.stream_url)+'">متصفحك لا يدعم تشغيل الفيديو.</video>';
+  }else{
+   const video=document.createElement('video');video.controls=true;video.playsInline=true;video.preload='metadata';video.setAttribute('aria-label',label);box.replaceChildren(video);
+   if(video.canPlayType('application/vnd.apple.mpegurl'))video.src=stream.stream_url;
+   else{
+    if(!window.Hls){await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';script.onload=resolve;script.onerror=()=>reject(Error('تعذر تحميل مشغل البث الخارجي'));document.head.appendChild(script)})}
+    if(window.Hls&&window.Hls.isSupported()){liveHlsInstance=new Hls();liveHlsInstance.loadSource(stream.stream_url);liveHlsInstance.attachMedia(video);liveHlsInstance.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal)hint.textContent='تعذر تشغيل البث. تحقق من رابط M3U8 أو إعدادات مصدر البث.'})}
+    else throw Error('هذا الجهاز لا يدعم تشغيل رابط M3U8.');
+   }
+  }
+ }catch(error){
+  box.innerHTML='<div class="live-offline"><span>!</span><b>تعذر تشغيل البث</b><small>'+escapeMatchHtml(error.message||'تحقق من اتصال الإنترنت والرابط.')+'</small></div>';
+  if(homeStatus)homeStatus.textContent='تعذر تحميل البث';
+ }
 }
 
 function transferDateLabel(value){if(!value)return '';const d=new Date(String(value)+'T00:00:00');return Number.isNaN(d.getTime())?value:d.toLocaleDateString('ar',{year:'numeric',month:'long',day:'numeric'})}
