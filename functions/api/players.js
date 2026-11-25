@@ -1,4 +1,5 @@
 import {isAuthorized} from "../_auth.js";
+import {deleteMediaIfUnreferenced} from "../_media_cleanup.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
@@ -90,8 +91,10 @@ export async function onRequestPut({ request, env }) {
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم اللاعب غير صحيح" }, 400);
     const data = clean(await request.json());
     if (data.error) return json({ success: false, message: data.error }, 400);
+    const previous = await env.DB.prepare("SELECT image_url FROM players WHERE id = ?").bind(id).first();
     const result = await env.DB.prepare("UPDATE players SET name = ?, position = ?, number = ?, image_url = ?, nationality = ?, age = ?, height = ?, matches = ?, clean_sheets = ?, saves = ?, goals = ?, assists = ?, tackles = ?, readiness = ?, bio = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(data.name, data.position, data.number, data.image_url, data.nationality, data.age, data.height, data.matches, data.clean_sheets, data.saves, data.goals, data.assists, data.tackles, data.readiness, data.bio, id).run();
     if (!result.meta.changes) return json({ success: false, message: "اللاعب غير موجود" }, 404);
+    await deleteMediaIfUnreferenced(env,[previous?.image_url]);
     return json({ success: true });
   } catch {
     return json({ success: false, message: "تعذر تعديل بيانات اللاعب" }, 500);
@@ -103,8 +106,10 @@ export async function onRequestDelete({ request, env }) {
     await ensureTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم اللاعب غير صحيح" }, 400);
+    const previous = await env.DB.prepare("SELECT image_url FROM players WHERE id = ?").bind(id).first();
     const result = await env.DB.prepare("DELETE FROM players WHERE id = ?").bind(id).run();
     if (!result.meta.changes) return json({ success: false, message: "اللاعب غير موجود" }, 404);
+    await deleteMediaIfUnreferenced(env,[previous?.image_url]);
     return json({ success: true });
   } catch {
     return json({ success: false, message: "تعذر حذف اللاعب" }, 500);
