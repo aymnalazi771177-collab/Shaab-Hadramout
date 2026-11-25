@@ -1,4 +1,5 @@
 import {isAuthorized} from "../_auth.js";
+import {sendClubPush} from "../_push.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
@@ -123,8 +124,17 @@ export async function onRequestPut({ request, env }) {
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم المباراة غير صحيح" }, 400);
     const data = clean(await request.json());
     if (data.error) return json({ success: false, message: data.error }, 400);
+    const previous = await env.DB.prepare("SELECT opponent,status,home_score,away_score FROM matches WHERE id=?").bind(id).first();
+    if (!previous) return json({ success: false, message: "المباراة غير موجودة" }, 404);
     const result = await env.DB.prepare("UPDATE matches SET opponent=?, opponent_logo_url=?, home_logo_url=?, match_date=?, match_time=?, venue=?, competition=?, is_home=?, status=?, home_score=?, away_score=?, notes=?, formation=?, lineup_json=?, played_players_json=?, finished_at=CASE WHEN ? = 'finished' THEN COALESCE(finished_at,strftime('%Y-%m-%dT%H:%M:%fZ','now')) ELSE NULL END, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(data.opponent, data.opponent_logo_url, data.home_logo_url, data.match_date, data.match_time, data.venue, data.competition, data.is_home, data.status, data.home_score, data.away_score, data.notes, data.formation, data.lineup_json, data.played_players_json, data.status, id).run();
     if (!result.meta.changes) return json({ success: false, message: "المباراة غير موجودة" }, 404);
+    const scoreChanged = previous.home_score !== data.home_score || previous.away_score !== data.away_score;
+    if (data.status === "live" && (previous.status !== "live" || scoreChanged)) {
+      const body = previous.status !== "live" ? "بدأت الآن مباراة شعب حضرموت أمام " + data.opponent : "تغيرت النتيجة: " + data.home_score + " - " + data.away_score;
+      await sendClubPush(env, "matches", {title:"تنبيه مباراة شعب حضرموت",body,url:"/"});
+    } else if (data.status === "finished" && previous.status !== "finished") {
+      await sendClubPush(env, "matches", {title:"انتهت مباراة شعب حضرموت",body:data.opponent + " — النتيجة " + (data.is_home ? data.home_score + " - " + data.away_score : data.away_score + " - " + data.home_score),url:"/"});
+    }
     if (data.status === "finished" && data.home_score !== null && data.away_score !== null) {
       const clubScore = data.is_home ? data.home_score : data.away_score;
       const opponentScore = data.is_home ? data.away_score : data.home_score;
