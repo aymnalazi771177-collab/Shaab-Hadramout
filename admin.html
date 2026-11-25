@@ -38,6 +38,8 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
   <button class="active" data-section="dashboard"><span>⌂</span>الرئيسية</button>
   <button data-section="carousel"><span>▣</span>السلايدر الرئيسي</button>
   <button data-section="news"><span>▤</span>إدارة الأخبار</button>
+  <button data-section="live"><span>📺</span>البث المباشر</button>
+
   <button data-section="team"><span>♟</span>اللاعبون والمدرب</button>
   <button data-section="matches"><span>⚽</span>المباريات والنتائج</button>
   <button data-section="standings"><span>▦</span>ترتيب الدوري</button>
@@ -66,6 +68,17 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}
    <div class="panel"><div class="panel-head"><h3>آخر الأخبار المضافة</h3><button class="btn secondary small" data-go="news">عرض الكل</button></div><div class="table-wrap"><table><thead><tr><th>عنوان الخبر</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody id="recentNews"></tbody></table></div></div>
   </section>
   <section class="page" id="section-carousel"><div class="welcome"><div><h2>السلايدر الرئيسي</h2><p>اختر حتى ثلاثة أخبار مستقلة تظهر في واجهة التطبيق الرئيسية.</p></div><button class="btn" id="addCarouselSlide">＋ إضافة خبر للسلايدر</button></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>الصورة</th><th>العنوان</th><th>الترتيب</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="carouselSlidesTable"><tr><td colspan="5" class="empty">جارٍ تحميل أخبار السلايدر...</td></tr></tbody></table></div><p style="color:#777;font-size:12px;margin:12px 0 0">هذا القسم مستقل تماماً عن الأخبار العادية. الحد الأقصى ثلاثة أخبار.</p></div></section>
+  <section class="page" id="section-live">
+   <div class="welcome"><div><h2>إدارة البث المباشر</h2><p>انشر بث النادي من يوتيوب أو من رابط بث خارجي.</p></div><span class="status" id="liveAdminStatus">جارٍ تحميل الحالة...</span></div>
+   <div class="panel" style="max-width:760px">
+    <div class="field"><label for="liveTitle">عنوان البث</label><input id="liveTitle" maxlength="160" placeholder="مثلاً: البث المباشر لمباراة شعب حضرموت"></div>
+    <div class="field"><label for="liveType">مصدر البث</label><select id="liveType"><option value="youtube">يوتيوب</option><option value="m3u8">رابط M3U8</option><option value="mp4">رابط MP4</option></select></div>
+    <div class="field"><label for="liveUrl">رابط البث</label><input id="liveUrl" type="url" dir="ltr" placeholder="https://..."><small style="color:#777;line-height:1.8">يوتيوب: رابط الفيديو أو البث. الروابط الخارجية: رابط مباشر ينتهي عادةً بـ .m3u8 أو .mp4.</small></div>
+    <label style="display:flex;align-items:center;gap:9px;font-weight:800;margin:12px 0 18px"><input id="liveEnabled" type="checkbox" style="width:18px;height:18px"> تفعيل البث وظهوره للزوار</label>
+    <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn" id="saveLiveStream">حفظ إعدادات البث</button><button class="btn danger" id="stopLiveStream" type="button">إيقاف البث</button></div>
+    <p id="liveAdminMessage" style="font-size:13px;color:#777;margin:14px 0 0">عند إيقاف البث سيظهر للزوار أنه لا يوجد بث مباشر حالياً.</p>
+   </div>
+  </section>
   <section class="page" id="section-news">
    <div class="welcome"><div><h2>إدارة الأخبار</h2><p>إضافة الأخبار وتعديلها وحذفها.</p></div><button class="btn" id="addNews">＋ إضافة خبر</button></div>
    <div class="panel"><div class="toolbar"><input class="search" id="newsSearch" placeholder="ابحث عن خبر..."></div><div class="table-wrap"><table><thead><tr><th>العنوان</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody id="newsTable"></tbody></table></div></div>
