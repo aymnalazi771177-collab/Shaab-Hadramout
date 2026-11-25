@@ -111,8 +111,13 @@ export async function onRequestDelete({ request, env }) {
     const previousImages = await env.DB.prepare("SELECT url FROM news_images WHERE news_id = ?").bind(id).all();
     await env.DB.prepare("DELETE FROM news_images WHERE news_id = ?").bind(id).run();
     await env.DB.prepare("DELETE FROM news WHERE id = ?").bind(id).run();
-    await deleteMediaIfUnreferenced(env, [previous.image_url, ...(previousImages.results || []).map(image => image.url)]);
-    return json({ success: true });
+    let mediaCleanup;
+    try {
+      mediaCleanup = await deleteMediaIfUnreferenced(env, [previous.image_url, ...(previousImages.results || []).map(image => image.url)]);
+    } catch (cleanupError) {
+      mediaCleanup = { deleted: 0, kept: 0, error: String(cleanupError?.message || cleanupError) };
+    }
+    return json({ success: true, mediaCleanup });
   } catch {
     return json({ success: false, message: "تعذر الحذف" }, 500);
   }
