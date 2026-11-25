@@ -1,4 +1,5 @@
 import {isAuthorized} from "../_auth.js";
+import {deleteMediaIfUnreferenced} from "../_media_cleanup.js";
 
 function json(data,status=200){
   return Response.json(data,{status,headers:{
@@ -124,12 +125,12 @@ export async function onRequestPut({request,env}){
     if(!Number.isInteger(id)||id<1)return json({success:false,message:"رقم الأسطورة غير صحيح"},400);
     const body=await request.json(),d=clean(body);
     if(d.error)return json({success:false,message:d.error},400);
-    const old=await env.DB.prepare("SELECT image_key FROM club_legends WHERE id=?").bind(id).first();
+    const old=await env.DB.prepare("SELECT image_key,image_url FROM club_legends WHERE id=?").bind(id).first();
     if(!old)return json({success:false,message:"الأسطورة غير موجودة"},404);
     await env.DB.prepare("UPDATE club_legends SET name=?,role=?,active_years=?,birth_date=?,death_date=?,image_url=?,image_key=?,bio=?,sort_order=?,active=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
       .bind(d.name,d.role,d.active_years,d.birth_date,d.death_date,d.image_url,d.image_key,d.bio,d.sort_order,d.active,id).run();
     await addMedia(env,id,body.photos,body.videos);
-    if(old.image_key&&old.image_key!==d.image_key&&env.NEWS_MEDIA)await env.NEWS_MEDIA.delete(old.image_key);
+    await deleteMediaIfUnreferenced(env,[old.image_key,old.image_url]);
     return json({success:true});
   }catch(error){console.error("Legends PUT failed",error);return json({success:false,message:"تعذر تعديل بيانات الأسطورة"},500)}
 }
@@ -141,13 +142,10 @@ export async function onRequestDelete({request,env}){
     if(!Number.isInteger(id)||id<1)return json({success:false,message:"رقم الأسطورة غير صحيح"},400);
     const old=await env.DB.prepare("SELECT image_key FROM club_legends WHERE id=?").bind(id).first();
     if(!old)return json({success:false,message:"الأسطورة غير موجودة"},404);
-    const media=await env.DB.prepare("SELECT media_key FROM club_legend_media WHERE legend_id=?").bind(id).all();
+    const media=await env.DB.prepare("SELECT media_key,media_url FROM club_legend_media WHERE legend_id=?").bind(id).all();
     await env.DB.prepare("DELETE FROM club_legend_media WHERE legend_id=?").bind(id).run();
     await env.DB.prepare("DELETE FROM club_legends WHERE id=?").bind(id).run();
-    if(env.NEWS_MEDIA){
-      if(old.image_key)await env.NEWS_MEDIA.delete(old.image_key);
-      for(const item of media.results||[])if(item.media_key)await env.NEWS_MEDIA.delete(item.media_key);
-    }
+    await deleteMediaIfUnreferenced(env,[old.image_key,old.image_url,...(media.results||[]).flatMap(item=>[item.media_key,item.media_url])]);
     return json({success:true});
   }catch(error){console.error("Legends DELETE failed",error);return json({success:false,message:"تعذر حذف الأسطورة"},500)}
 }
