@@ -1,4 +1,4 @@
-import {sendClubPush} from "../_push.js";
+import {getVapidConfig} from "../_push.js";
 const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization"};
 const json=(data,status=200)=>Response.json(data,{status,headers});
 async function ensure(env){
@@ -15,13 +15,13 @@ export async function onRequestGet({request,env}){
       const row=await env.DB.prepare("SELECT match_enabled,news_enabled FROM push_subscriptions WHERE endpoint=?").bind(endpoint).first();
       if(row)preferences={matches:!!row.match_enabled,news:!!row.news_enabled};
     }
-    return json({success:true,publicKey:env.VAPID_PUBLIC_KEY||"",preferences});
+    const config=await getVapidConfig(env);
+    return json({success:true,publicKey:config.publicKey,preferences});
   }catch(error){console.error("Push settings GET failed",error);return json({success:false,message:"تعذر تحميل إعدادات التنبيهات"},500);}
 }
 export async function onRequestPost({request,env}){
   try{
     await ensure(env);
-    if(!env.VAPID_PUBLIC_KEY||!env.VAPID_PRIVATE_JWK)return json({success:false,message:"خدمة التنبيهات غير مكتملة الإعداد"},503);
     const body=await request.json(),sub=body.subscription||{},keys=sub.keys||{};
     const endpoint=String(sub.endpoint||"").trim(),p256dh=String(keys.p256dh||""),auth=String(keys.auth||"");
     if(!endpoint.startsWith("https://")||!p256dh||!auth)return json({success:false,message:"بيانات الاشتراك غير صحيحة"},400);
