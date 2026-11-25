@@ -25,15 +25,28 @@ async function hkdfExpand(prk, info, length) {
   }
   return output.slice(0, length);
 }
-async function makeVapidToken(endpoint, env) {
+export async function getVapidConfig(env) {
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS push_config(id INTEGER PRIMARY KEY CHECK(id=1),public_key TEXT NOT NULL,private_jwk TEXT NOT NULL,created_at TEXT DEFAULT CURRENT_TIMESTAMP)").run();
+  let row = await env.DB.prepare("SELECT public_key,private_jwk FROM push_config WHERE id=1").first();
+  if (!row) {
+    const pair = await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},true,["sign","verify"]);
+    const publicKey = b64url(await crypto.subtle.exportKey("raw",pair.publicKey));
+    const privateJwk = JSON.stringify(await crypto.subtle.exportKey("jwk",pair.privateKey));
+    await env.DB.prepare("INSERT OR IGNORE INTO push_config(id,public_key,private_jwk) VALUES(1,?,?)").bind(publicKey,privateJwk).run();
+    row = await env.DB.prepare("SELECT public_key,private_jwk FROM push_config WHERE id=1").first();
+  }
+  if (!row) throw new Error("Unable to initialize push signing key");
+  return {publicKey:row.public_key,privateJwk:row.private_jwk};
+}
+async function makeVapidToken(endpoint, env, config) {
   const url = new URL(endpoint);
-  const jwk = JSON.parse(env.VAPID_PRIVATE_JWK);
+  const jwk = JSON.parse(config.privateJwk);
   const privateKey = await crypto.subtle.importKey("jwk", {
     kty:"EC", crv:"P-256", x:jwk.x, y:jwk.y, d:jwk.d, ext:true, key_ops:["sign"]
   }, {name:"ECDSA",namedCurve:"P-256"}, false, ["sign"]);
   const encode = value => b64url(jsonBytes(JSON.stringify(value)));
   const head = encode({typ:"JWT",alg:"ES256"});
-  const body = encode({aud:url.origin,exp:Math.floor(Date.now()/1000)+43200,sub:env.VAPID_SUBJECT || "mailto:admin@example.com"});
+  const body = encode({aud:url.origin,exp:Math.floor(Date.now()/1000)+43200,sub:env.VAPID_SUBJECT || "https://shaab-hadramout.pages.dev/"});
   const signature = new Uint8Array(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},privateKey,jsonBytes(head+"."+body)));
   return head+"."+body+"."+b64url(signature);
 }
@@ -60,15 +73,15 @@ async function encryptPushPayload(subscription, payload) {
 }
 export async function sendClubPush(env, type, payload) {
   try {
-    if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_JWK) return;
+    const config = await getVapidConfig(env);
     const column = type === "news" ? "news_enabled" : "match_enabled";
     const {results=[]} = await env.DB.prepare("SELECT endpoint,p256dh,auth FROM push_subscriptions WHERE "+column+"=1").all();
     await Promise.allSettled(results.map(async row => {
       try {
         const body = await encryptPushPayload({p256dh:row.p256dh,auth:row.auth},payload);
-        const token = await makeVapidToken(row.endpoint,env);
+        const token = await makeVapidToken(row.endpoint,env,config);
         const response = await fetch(row.endpoint,{method:"POST",headers:{
-          "Authorization":"vapid t="+token+", k="+env.VAPID_PUBLIC_KEY,
+          "Authorization":"vapid t="+token+", k="+config.publicKey,
           "TTL":"86400","Urgency":"high","Content-Encoding":"aes128gcm",
           "Content-Type":"application/octet-stream"
         },body});
