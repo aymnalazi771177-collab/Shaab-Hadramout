@@ -1,3 +1,4 @@
+import {sendFirebaseTopicPush} from "./_fcm.js";
 const jsonBytes = value => new TextEncoder().encode(value);
 const b64url = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const fromB64url = value => {
@@ -72,6 +73,7 @@ async function encryptPushPayload(subscription, payload) {
   return joinBytes(salt,recordSize,new Uint8Array([serverPublic.length]),serverPublic,cipher);
 }
 export async function sendClubPush(env, type, payload) {
+  await sendFirebaseTopicPush(env, type, payload);
   try {
     const config = await getVapidConfig(env);
     const column = type === "news" ? "news_enabled" : "match_enabled";
