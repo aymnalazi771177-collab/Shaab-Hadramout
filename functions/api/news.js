@@ -65,6 +65,29 @@ export async function onRequestPost({ request, env }) {
     const result = await env.DB.prepare("INSERT INTO news (title, content, image_url, is_urgent) VALUES (?, ?, ?, ?)").bind(title, String(body.content || ""), mainImage, isUrgent).run();
     const id = result.meta.last_row_id;
     if (images.length) await env.DB.batch(images.map((image, index) => env.DB.prepare("INSERT INTO news_images (news_id, url, sort_order) VALUES (?, ?, ?)").bind(id, image.url, index)));
+
+    // Keep only the newest 30 news items and remove orphaned media from R2.
+    const expiredNews = await env.DB.prepare("SELECT id, image_url FROM news ORDER BY id DESC LIMIT -1 OFFSET 30").all();
+    const expiredIds = (expiredNews.results || []).map(item => item.id);
+    let autoCleanup = { deleted: 0, kept: 0 };
+    if (expiredIds.length) {
+      const placeholders = expiredIds.map(() => "?").join(",");
+      const expiredImages = await env.DB.prepare("SELECT url FROM news_images WHERE news_id IN (" + placeholders + ")").bind(...expiredIds).all();
+      const expiredMedia = [
+        ...(expiredNews.results || []).map(item => item.image_url),
+        ...(expiredImages.results || []).map(item => item.url)
+      ];
+      await env.DB.batch([
+        env.DB.prepare("DELETE FROM news_images WHERE news_id IN (" + placeholders + ")").bind(...expiredIds),
+        env.DB.prepare("DELETE FROM news WHERE id IN (" + placeholders + ")").bind(...expiredIds)
+      ]);
+      try {
+        autoCleanup = await deleteMediaIfUnreferenced(env, expiredMedia);
+      } catch (cleanupError) {
+        autoCleanup = { deleted: 0, kept: 0, error: String(cleanupError?.message || cleanupError) };
+      }
+    }
+
     await recordClubNotification(env, {title: isUrgent ? "خبر عاجل من نادي شعب حضرموت" : "خبر جديد من نادي شعب حضرموت", body: title, type: "news", referenceId: id});
     await sendClubPush(env, "news", {title: isUrgent ? "خبر عاجل من نادي شعب حضرموت" : "خبر جديد من نادي شعب حضرموت", body: title, url: "./?newsId=" + id, newsId: String(id)});
     return json({ success: true, id }, 201);
