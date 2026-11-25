@@ -4,6 +4,8 @@ export async function ensureClubNotifications(env) {
   const names = new Set((columns.results || []).map(column => column.name));
   if (!names.has("type")) await env.DB.prepare("ALTER TABLE club_notifications ADD COLUMN type TEXT NOT NULL DEFAULT 'general'").run();
   if (!names.has("reference_id")) await env.DB.prepare("ALTER TABLE club_notifications ADD COLUMN reference_id INTEGER").run();
+  // Keep the in-app notification bell limited to the most recent seven days.
+  await env.DB.prepare("DELETE FROM club_notifications WHERE datetime(created_at) < datetime('now', '-7 days')").run();
 }
 export async function recordClubNotification(env, {title, body, type = "general", referenceId = null}) {
   await ensureClubNotifications(env);
