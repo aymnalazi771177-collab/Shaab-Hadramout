@@ -1,6 +1,7 @@
 import {isAuthorized} from "../_auth.js";
 import {sendClubPush} from "../_push.js";
 import {recordClubNotification} from "../_notifications.js";
+import {deleteMediaIfUnreferenced} from "../_media_cleanup.js";
 function json(data, status = 200) {
   return Response.json(data, { status, headers: {
     "Access-Control-Allow-Origin": "*",
@@ -129,7 +130,7 @@ export async function onRequestPut({ request, env }) {
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم المباراة غير صحيح" }, 400);
     const data = clean(await request.json());
     if (data.error) return json({ success: false, message: data.error }, 400);
-    const previous = await env.DB.prepare("SELECT opponent,status,home_score,away_score FROM matches WHERE id=?").bind(id).first();
+    const previous = await env.DB.prepare("SELECT opponent,status,home_score,away_score,opponent_logo_url,home_logo_url FROM matches WHERE id=?").bind(id).first();
     if (!previous) return json({ success: false, message: "المباراة غير موجودة" }, 404);
     const result = await env.DB.prepare("UPDATE matches SET opponent=?, opponent_logo_url=?, home_logo_url=?, match_date=?, match_time=?, venue=?, competition=?, is_home=?, status=?, home_score=?, away_score=?, notes=?, formation=?, lineup_json=?, played_players_json=?, finished_at=CASE WHEN ? = 'finished' THEN COALESCE(finished_at,strftime('%Y-%m-%dT%H:%M:%fZ','now')) ELSE NULL END, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(data.opponent, data.opponent_logo_url, data.home_logo_url, data.match_date, data.match_time, data.venue, data.competition, data.is_home, data.status, data.home_score, data.away_score, data.notes, data.formation, data.lineup_json, data.played_players_json, data.status, id).run();
     if (!result.meta.changes) return json({ success: false, message: "المباراة غير موجودة" }, 404);
@@ -143,6 +144,7 @@ export async function onRequestPut({ request, env }) {
       await recordClubNotification(env, {title:"انتهت مباراة شعب حضرموت", body:resultText, type:"result", referenceId:id});
       await sendClubPush(env, "matches", {title:"انتهت مباراة شعب حضرموت",body:resultText,url:"/",matchId:String(id)});
     }
+    await deleteMediaIfUnreferenced(env,[previous.opponent_logo_url,previous.home_logo_url]);
     if (data.status === "finished" && data.home_score !== null && data.away_score !== null) {
       const clubScore = data.is_home ? data.home_score : data.away_score;
       const opponentScore = data.is_home ? data.away_score : data.home_score;
@@ -162,8 +164,10 @@ export async function onRequestDelete({ request, env }) {
     await ensureTable(env);
     const id = Number(new URL(request.url).searchParams.get("id"));
     if (!Number.isInteger(id) || id < 1) return json({ success: false, message: "رقم المباراة غير صحيح" }, 400);
+    const previous = await env.DB.prepare("SELECT opponent_logo_url,home_logo_url FROM matches WHERE id = ?").bind(id).first();
     const result = await env.DB.prepare("DELETE FROM matches WHERE id = ?").bind(id).run();
     if (!result.meta.changes) return json({ success: false, message: "المباراة غير موجودة" }, 404);
+    await deleteMediaIfUnreferenced(env,[previous?.opponent_logo_url,previous?.home_logo_url]);
     return json({ success: true });
   } catch (error) {
     console.error("Matches DELETE failed", error);
