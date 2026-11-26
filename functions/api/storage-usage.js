@@ -32,10 +32,21 @@ export async function onRequestGet({ request, env }) {
     });
     const objects = result.objects || [];
     const bytes = objects.reduce((sum, object) => sum + Number(object.size || 0), 0);
+    let d1Bytes = null;
+    if (!cursor && env.DB) {
+      try {
+        const d1Usage = await env.DB.prepare("SELECT 1 AS ok").all();
+        const measuredSize = Number(d1Usage?.meta?.size_after);
+        if (Number.isFinite(measuredSize) && measuredSize >= 0) d1Bytes = measuredSize;
+      } catch (d1Error) {
+        console.error("D1 storage usage read failed:", d1Error);
+      }
+    }
 
     return json({
       success: true,
       bytes,
+      d1Bytes,
       objects: objects.length,
       nextCursor: result.truncated ? (result.cursor || null) : null,
       complete: !result.truncated,
