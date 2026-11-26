@@ -13,7 +13,7 @@ function mediaKey(value){
 }
 const REFERENCE_COLUMNS=[
   ["news","image_url"],["news_images","url"],
-  ["club_media","media_url"],["club_media","media_key"],
+  ["club_media","media_url"],["club_media","media_key"],["club_media","thumbnail_url"],["club_media","thumbnail_key"],
   ["club_reels","media_url"],["club_reels","media_key"],
   ["club_reels","thumbnail_url"],["club_reels","thumbnail_key"],
   ["club_reel_items","media_url"],["club_reel_items","media_key"],
