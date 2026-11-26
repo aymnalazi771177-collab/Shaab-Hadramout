@@ -16,11 +16,12 @@ export async function onRequestGet({request,env}){
  try{
   await ensure(env);
   const url=new URL(request.url),adminView=url.searchParams.get("admin")==="1",kind=url.searchParams.get("kind");
-  if(adminView&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
+  if(adminView){const permission=kind==="app_update"?"appUpdates":kind==="exclusive"?"customAlerts":"notifications";if(!await isAuthorized(request,env,permission))return json({success:false,message:"غير مصرح"},401);}
   const member=adminView?false:await isFanMember(request,env);
   let sql="SELECT * FROM club_notifications";
   const clauses=[],values=[];
   if(kind==="app_update")clauses.push("type='app_update'");
+  else if(kind==="exclusive")clauses.push("type='exclusive'");
   if(!adminView) {
    clauses.push("(audience='all' OR (audience='members' AND ?=1) OR (audience='visitors' AND ?=0))");
    values.push(member?1:0,member?1:0);
@@ -42,6 +43,7 @@ export async function onRequestPost({request,env}){
   if(type==="app_update"&&!appVersion)return json({success:false,message:"رقم الإصدار مطلوب"},400);
   if(appVersion.length>40)return json({success:false,message:"رقم الإصدار أطول من الحد المسموح"},400);
   const id=await recordClubNotification(env,{title,body,type,referenceId:b.reference_id,audience,appVersion});
+  if(type==="exclusive"){const details=JSON.stringify({content:String(b.content||"").slice(0,12000),cover_image:String(b.cover_image||"").slice(0,2000),images:Array.isArray(b.images)?b.images.slice(0,20).map(x=>String(x).slice(0,2000)):[]});await env.DB.prepare("UPDATE club_notifications SET details_json=? WHERE id=?").bind(details,id).run();}
   return json({success:true,id},201);
  }catch(e){console.error("Notifications POST failed",e);return json({success:false,message:"تعذر نشر الإشعار"},500)}
 }
@@ -56,6 +58,7 @@ export async function onRequestPut({request,env}){
   if(!["all","members","visitors"].includes(audience))return json({success:false,message:"الفئة المستهدفة غير صحيحة"},400);
   if(type==="app_update"&&!appVersion)return json({success:false,message:"رقم الإصدار مطلوب"},400);
   const result=await env.DB.prepare("UPDATE club_notifications SET title=?,body=?,type=?,audience=?,app_version=? WHERE id=?").bind(title,body,type,audience,appVersion||null,id).run();
+  if(result.meta.changes&&type==="exclusive"){const details=JSON.stringify({content:String(b.content||"").slice(0,12000),cover_image:String(b.cover_image||"").slice(0,2000),images:Array.isArray(b.images)?b.images.slice(0,20).map(x=>String(x).slice(0,2000)):[]});await env.DB.prepare("UPDATE club_notifications SET details_json=? WHERE id=?").bind(details,id).run();}
   return result.meta.changes?json({success:true}):json({success:false,message:"الإشعار غير موجود"},404);
  }catch(e){console.error("Notifications PUT failed",e);return json({success:false,message:"تعذر تعديل الإشعار"},500)}
 }
