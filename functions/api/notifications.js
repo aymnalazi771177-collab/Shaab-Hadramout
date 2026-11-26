@@ -37,6 +37,7 @@ export async function onRequestPost({request,env}){
  try{
   await ensure(env);
   const b=await request.json(),title=String(b.title||"").trim(),body=String(b.body||"").trim(),type=String(b.type||"general"),audience=String(b.audience||"all"),appVersion=String(b.app_version||"").trim();
+  const permission=type==="app_update"?"appUpdates":type==="exclusive"?"customAlerts":"notifications";if(!await isAuthorized(request,env,permission))return json({success:false,message:"غير مصرح"},401);
   if(!title||!body)return json({success:false,message:"عنوان الإشعار ونصه مطلوبان"},400);
   if(title.length>160||body.length>1500)return json({success:false,message:"الإشعار أطول من الحد المسموح"},400);
   if(!["all","members","visitors"].includes(audience))return json({success:false,message:"الفئة المستهدفة غير صحيحة"},400);
@@ -48,10 +49,11 @@ export async function onRequestPost({request,env}){
  }catch(e){console.error("Notifications POST failed",e);return json({success:false,message:"تعذر نشر الإشعار"},500)}
 }
 export async function onRequestPut({request,env}){
- if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
+ if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates")&&!await isAuthorized(request,env,"customAlerts"))return json({success:false,message:"غير مصرح"},401);
  try{
   await ensure(env);
   const b=await request.json(),id=Number(new URL(request.url).searchParams.get("id")),title=String(b.title||"").trim(),body=String(b.body||"").trim(),type=String(b.type||"general"),audience=String(b.audience||"all"),appVersion=String(b.app_version||"").trim();
+  const existing=await env.DB.prepare("SELECT type FROM club_notifications WHERE id=?").bind(id).first();if(!existing)return json({success:false,message:"الإشعار غير موجود"},404);const oldPermission=existing.type==="app_update"?"appUpdates":existing.type==="exclusive"?"customAlerts":"notifications";const newPermission=type==="app_update"?"appUpdates":type==="exclusive"?"customAlerts":"notifications";if(!await isAuthorized(request,env,oldPermission)||!await isAuthorized(request,env,newPermission))return json({success:false,message:"غير مصرح"},401);
   if(!Number.isInteger(id)||id<1)return json({success:false,message:"رقم الإشعار غير صحيح"},400);
   if(!title||!body)return json({success:false,message:"عنوان الإشعار ونصه مطلوبان"},400);
   if(title.length>160||body.length>1500||appVersion.length>40)return json({success:false,message:"توجد بيانات أطول من الحد المسموح"},400);
