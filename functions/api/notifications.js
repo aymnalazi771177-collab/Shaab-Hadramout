@@ -4,7 +4,7 @@ const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":
 const json=(d,s=200)=>Response.json(d,{status:s,headers});
 async function ensure(e){await ensureClubNotifications(e)}
 async function isFanMember(request,env){
- const token=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"").trim();
+ const token=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"").trim();
  if(!token)return false;
  try{
   const row=await env.DB.prepare("SELECT f.id FROM fan_sessions s JOIN fans f ON f.id=s.fan_id WHERE s.token_hash=? AND f.active=1 AND datetime(s.expires_at)>datetime('now') LIMIT 1").bind(await tokenHash(token)).first();
