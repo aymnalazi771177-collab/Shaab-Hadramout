@@ -45,6 +45,20 @@ export async function onRequestPost({request,env}){
   return json({success:true,id},201);
  }catch(e){console.error("Notifications POST failed",e);return json({success:false,message:"تعذر نشر الإشعار"},500)}
 }
+export async function onRequestPut({request,env}){
+ if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
+ try{
+  await ensure(env);
+  const b=await request.json(),id=Number(new URL(request.url).searchParams.get("id")),title=String(b.title||"").trim(),body=String(b.body||"").trim(),type=String(b.type||"general"),audience=String(b.audience||"all"),appVersion=String(b.app_version||"").trim();
+  if(!Number.isInteger(id)||id<1)return json({success:false,message:"رقم الإشعار غير صحيح"},400);
+  if(!title||!body)return json({success:false,message:"عنوان الإشعار ونصه مطلوبان"},400);
+  if(title.length>160||body.length>1500||appVersion.length>40)return json({success:false,message:"توجد بيانات أطول من الحد المسموح"},400);
+  if(!["all","members","visitors"].includes(audience))return json({success:false,message:"الفئة المستهدفة غير صحيحة"},400);
+  if(type==="app_update"&&!appVersion)return json({success:false,message:"رقم الإصدار مطلوب"},400);
+  const result=await env.DB.prepare("UPDATE club_notifications SET title=?,body=?,type=?,audience=?,app_version=? WHERE id=?").bind(title,body,type,audience,appVersion||null,id).run();
+  return result.meta.changes?json({success:true}):json({success:false,message:"الإشعار غير موجود"},404);
+ }catch(e){console.error("Notifications PUT failed",e);return json({success:false,message:"تعذر تعديل الإشعار"},500)}
+}
 export async function onRequestDelete({request,env}){
  if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
  try{await ensure(env);const id=Number(new URL(request.url).searchParams.get("id")),r=await env.DB.prepare("DELETE FROM club_notifications WHERE id=?").bind(id).run();return r.meta.changes?json({success:true}):json({success:false,message:"الإشعار غير موجود"},404)}catch(e){return json({success:false,message:"تعذر حذف الإشعار"},500)}
