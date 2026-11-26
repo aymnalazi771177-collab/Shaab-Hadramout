@@ -6,6 +6,7 @@ export async function ensureClubNotifications(env) {
   if (!names.has("reference_id")) await env.DB.prepare("ALTER TABLE club_notifications ADD COLUMN reference_id INTEGER").run();
   if (!names.has("audience")) await env.DB.prepare("ALTER TABLE club_notifications ADD COLUMN audience TEXT NOT NULL DEFAULT 'all'").run();
   if (!names.has("app_version")) await env.DB.prepare("ALTER TABLE club_notifications ADD COLUMN app_version TEXT").run();
+  if (!names.has("details_json")) await env.DB.prepare("ALTER TABLE club_notifications ADD COLUMN details_json TEXT").run();
   // Keep the in-app notification bell limited to the most recent seven days.
   await env.DB.prepare("DELETE FROM club_notifications WHERE datetime(created_at) < datetime('now', '-7 days')").run();
 }
