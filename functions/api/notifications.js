@@ -1,6 +1,6 @@
 import {isAuthorized, tokenHash} from "../_auth.js";
 import {ensureClubNotifications, recordClubNotification} from "../_notifications.js";
-const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Cache-Control":"no-store"};
+const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Cache-Control":"no-store"};
 const json=(d,s=200)=>Response.json(d,{status:s,headers});
 async function ensure(e){await ensureClubNotifications(e)}
 async function isFanMember(request,env){
