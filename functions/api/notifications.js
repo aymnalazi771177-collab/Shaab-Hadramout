@@ -1,8 +1,51 @@
-import {isAuthorized} from "../_auth.js";
+import {isAuthorized, tokenHash} from "../_auth.js";
 import {ensureClubNotifications, recordClubNotification} from "../_notifications.js";
-const json=(d,s=200)=>Response.json(d,{status:s,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization"}});
+const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Cache-Control":"no-store"};
+const json=(d,s=200)=>Response.json(d,{status:s,headers});
 async function ensure(e){await ensureClubNotifications(e)}
-export async function onRequestOptions(){return new Response(null,{status:204,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization"}})}
-export async function onRequestGet({env}){try{await ensure(env);const{results}=await env.DB.prepare("SELECT * FROM club_notifications ORDER BY id DESC LIMIT 100").all();return json({success:true,notifications:results})}catch(e){return json({success:false,message:"تعذر تحميل الإشعارات"},500)}}
-export async function onRequestPost({request,env}){if(!await isAuthorized(request,env,"notifications"))return json({success:false,message:"غير مصرح"},401);try{await ensure(env);const b=await request.json(),title=String(b.title||"").trim(),body=String(b.body||"").trim();if(!title||!body)return json({success:false,message:"عنوان الإشعار ونصه مطلوبان"},400);if(title.length>160||body.length>1500)return json({success:false,message:"الإشعار أطول من الحد المسموح"},400);const id=await recordClubNotification(env,{title,body,type:String(b.type||"general"),referenceId:b.reference_id});return json({success:true,id},201)}catch(e){return json({success:false,message:"تعذر نشر الإشعار"},500)}}
-export async function onRequestDelete({request,env}){if(!await isAuthorized(request,env,"notifications"))return json({success:false,message:"غير مصرح"},401);try{await ensure(env);const id=Number(new URL(request.url).searchParams.get("id")),r=await env.DB.prepare("DELETE FROM club_notifications WHERE id=?").bind(id).run();return r.meta.changes?json({success:true}):json({success:false,message:"الإشعار غير موجود"},404)}catch(e){return json({success:false,message:"تعذر حذف الإشعار"},500)}}
+async function isFanMember(request,env){
+ const token=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"").trim();
+ if(!token)return false;
+ try{
+  const row=await env.DB.prepare("SELECT f.id FROM fan_sessions s JOIN fans f ON f.id=s.fan_id WHERE s.token_hash=? AND f.active=1 AND datetime(s.expires_at)>datetime('now') LIMIT 1").bind(await tokenHash(token)).first();
+  return !!row;
+ }catch{return false}
+}
+export async function onRequestOptions(){return new Response(null,{status:204,headers})}
+export async function onRequestGet({request,env}){
+ try{
+  await ensure(env);
+  const url=new URL(request.url),adminView=url.searchParams.get("admin")==="1",kind=url.searchParams.get("kind");
+  if(adminView&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
+  const member=adminView?false:await isFanMember(request,env);
+  let sql="SELECT * FROM club_notifications";
+  const clauses=[],values=[];
+  if(kind==="app_update")clauses.push("type='app_update'");
+  if(!adminView) {
+   clauses.push("(audience='all' OR (audience='members' AND ?=1) OR (audience='visitors' AND ?=0))");
+   values.push(member?1:0,member?1:0);
+  }
+  if(clauses.length)sql+=" WHERE "+clauses.join(" AND ");
+  sql+=" ORDER BY id DESC LIMIT 100";
+  const {results}=await env.DB.prepare(sql).bind(...values).all();
+  return json({success:true,notifications:results});
+ }catch(e){console.error("Notifications GET failed",e);return json({success:false,message:"تعذر تحميل الإشعارات"},500)}
+}
+export async function onRequestPost({request,env}){
+ if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
+ try{
+  await ensure(env);
+  const b=await request.json(),title=String(b.title||"").trim(),body=String(b.body||"").trim(),type=String(b.type||"general"),audience=String(b.audience||"all"),appVersion=String(b.app_version||"").trim();
+  if(!title||!body)return json({success:false,message:"عنوان الإشعار ونصه مطلوبان"},400);
+  if(title.length>160||body.length>1500)return json({success:false,message:"الإشعار أطول من الحد المسموح"},400);
+  if(!["all","members","visitors"].includes(audience))return json({success:false,message:"الفئة المستهدفة غير صحيحة"},400);
+  if(type==="app_update"&&!appVersion)return json({success:false,message:"رقم الإصدار مطلوب"},400);
+  if(appVersion.length>40)return json({success:false,message:"رقم الإصدار أطول من الحد المسموح"},400);
+  const id=await recordClubNotification(env,{title,body,type,referenceId:b.reference_id,audience,appVersion});
+  return json({success:true,id},201);
+ }catch(e){console.error("Notifications POST failed",e);return json({success:false,message:"تعذر نشر الإشعار"},500)}
+}
+export async function onRequestDelete({request,env}){
+ if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
+ try{await ensure(env);const id=Number(new URL(request.url).searchParams.get("id")),r=await env.DB.prepare("DELETE FROM club_notifications WHERE id=?").bind(id).run();return r.meta.changes?json({success:true}):json({success:false,message:"الإشعار غير موجود"},404)}catch(e){return json({success:false,message:"تعذر حذف الإشعار"},500)}
+}
