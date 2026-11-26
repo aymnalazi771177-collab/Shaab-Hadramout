@@ -33,7 +33,7 @@ export async function onRequestGet({request,env}){
  }catch(e){console.error("Notifications GET failed",e);return json({success:false,message:"تعذر تحميل الإشعارات"},500)}
 }
 export async function onRequestPost({request,env}){
- if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
+ if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates")&&!await isAuthorized(request,env,"customAlerts"))return json({success:false,message:"غير مصرح"},401);
  try{
   await ensure(env);
   const b=await request.json(),title=String(b.title||"").trim(),body=String(b.body||"").trim(),type=String(b.type||"general"),audience=String(b.audience||"all"),appVersion=String(b.app_version||"").trim();
@@ -64,5 +64,5 @@ export async function onRequestPut({request,env}){
 }
 export async function onRequestDelete({request,env}){
  if(!await isAuthorized(request,env,"notifications")&&!await isAuthorized(request,env,"appUpdates"))return json({success:false,message:"غير مصرح"},401);
- try{await ensure(env);const id=Number(new URL(request.url).searchParams.get("id")),r=await env.DB.prepare("DELETE FROM club_notifications WHERE id=?").bind(id).run();return r.meta.changes?json({success:true}):json({success:false,message:"الإشعار غير موجود"},404)}catch(e){return json({success:false,message:"تعذر حذف الإشعار"},500)}
+ try{await ensure(env);const id=Number(new URL(request.url).searchParams.get("id"));const row=await env.DB.prepare("SELECT type FROM club_notifications WHERE id=?").bind(id).first();if(!row)return json({success:false,message:"الإشعار غير موجود"},404);const permission=row.type==="app_update"?"appUpdates":row.type==="exclusive"?"customAlerts":"notifications";if(!await isAuthorized(request,env,permission))return json({success:false,message:"غير مصرح"},401);const r=await env.DB.prepare("DELETE FROM club_notifications WHERE id=?").bind(id).run();return r.meta.changes?json({success:true}):json({success:false,message:"الإشعار غير موجود"},404)}catch(e){return json({success:false,message:"تعذر حذف الإشعار"},500)}
 }
