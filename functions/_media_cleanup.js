@@ -20,7 +20,7 @@ const REFERENCE_COLUMNS=[
   ["club_reel_items","media_url"],["club_reel_items","media_key"],
   ["club_reel_items","thumbnail_url"],["club_reel_items","thumbnail_key"],
   ["players","image_url"],["matches","opponent_logo_url"],["matches","home_logo_url"],
-  ["transfers","image_url"]
+  ["transfers","image_url"],["club_section_items","images_json"],["club_section_items","image_keys_json"]
 ];
 export async function deleteMediaIfUnreferenced(env,values=[]){
   if(!env?.NEWS_MEDIA)throw new Error("R2 binding NEWS_MEDIA is unavailable");
