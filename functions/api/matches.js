@@ -149,8 +149,14 @@ export async function onRequestPut({ request, env }) {
       const clubScore = data.is_home ? data.home_score : data.away_score;
       const opponentScore = data.is_home ? data.away_score : data.home_score;
       const outcome = clubScore > opponentScore ? "win" : clubScore < opponentScore ? "loss" : "draw";
-      await env.DB.prepare("UPDATE fan_predictions SET points=CASE WHEN choice=? THEN 3 ELSE 0 END, settled=1, updated_at=CURRENT_TIMESTAMP WHERE match_id=?")
+      // Award exactly 30 points only after an explicitly finished match with a complete score.
+      // Re-saving the same result is idempotent and never adds points twice.
+      await env.DB.prepare("UPDATE fan_predictions SET points=CASE WHEN choice=? THEN 30 ELSE 0 END, settled=1, updated_at=CURRENT_TIMESTAMP WHERE match_id=?")
         .bind(outcome, id).run();
+    } else {
+      // Reopening, postponing, cancelling, or clearing the score invalidates prior settlement.
+      await env.DB.prepare("UPDATE fan_predictions SET points=0, settled=0, updated_at=CURRENT_TIMESTAMP WHERE match_id=?")
+        .bind(id).run();
     }
     return json({ success: true });
   } catch (error) {
@@ -167,6 +173,8 @@ export async function onRequestDelete({ request, env }) {
     const previous = await env.DB.prepare("SELECT opponent_logo_url,home_logo_url FROM matches WHERE id = ?").bind(id).first();
     const result = await env.DB.prepare("DELETE FROM matches WHERE id = ?").bind(id).run();
     if (!result.meta.changes) return json({ success: false, message: "المباراة غير موجودة" }, 404);
+    // Remove predictions with the deleted match so orphaned scores cannot remain on the leaderboard.
+    await env.DB.prepare("DELETE FROM fan_predictions WHERE match_id = ?").bind(id).run();
     await deleteMediaIfUnreferenced(env,[previous?.opponent_logo_url,previous?.home_logo_url]);
     return json({ success: true });
   } catch (error) {
