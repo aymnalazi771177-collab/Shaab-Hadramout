@@ -42,7 +42,10 @@ export async function onRequestGet({request,env}) {
         .bind(matchId,session.id).first();
     }
     const {results:leaderboard}=await env.DB.prepare(`SELECT f.id,f.full_name,COALESCE(SUM(p.points),0) AS points
-      FROM fans f LEFT JOIN fan_predictions p ON p.fan_id=f.id AND p.settled=1
+      FROM fans f
+      JOIN fan_predictions p ON p.fan_id=f.id AND p.settled=1
+      JOIN matches m ON m.id=p.match_id AND m.status='finished'
+        AND m.home_score IS NOT NULL AND m.away_score IS NOT NULL
       WHERE f.active=1 AND f.phone IS NOT NULL
       GROUP BY f.id,f.full_name
       HAVING COALESCE(SUM(p.points),0)>0
