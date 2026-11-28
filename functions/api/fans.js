@@ -149,24 +149,28 @@ export async function onRequestPost({ request, env }) {
 
     if (action === "register") {
       stage = "register_validate";
-      const name = clean(body.name).slice(0, 80);
+      const name = clean(body.name).replace(/\s+/g, " ").slice(0, 80);
+      const email = clean(body.email).toLowerCase();
       const phone = validateFanPhone(body.phone);
       const password = String(body.password || "");
       if (name.split(/\s+/).filter(Boolean).length !== 3) return json({ success: false, message: "اكتب اسمك الثلاثي" }, 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return json({ success: false, message: "أدخل بريداً إلكترونياً صحيحاً" }, 400);
       if (!phone) return json({ success: false, message: "رقم الجوال غير صحيح أو يبدو رقماً وهمياً. اختر مفتاح الدولة وأدخل رقماً صحيحاً." }, 400);
       if (password.length < 8 || password.length > 128) return json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }, 400);
       stage = "register_lookup";
+      const emailExists = await env.DB.prepare("SELECT id FROM fans WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+      if (emailExists) return json({ success: false, message: "هذا البريد الإلكتروني مسجل مسبقاً، سجل الدخول بدلاً من إنشاء حساب جديد" }, 409);
       let exists = null;
       for (const variant of legacyPhoneVariants(phone)) {
         exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=?").bind(variant).first();
         if (exists) break;
       }
-      if (exists) return json({ success: false, message: "رقم الجوال مسجل مسبقاً، سجل الدخول بدلاً من إنشاء حساب جديد" }, 409);
+      if (exists) return json({ success: false, message: "رقم الجوال مسجل مسبقاً، استخدم ربط البريد بحسابك السابق" }, 409);
       stage = "register_hash";
       const passwordHash = await makeFanPasswordHash(password);
       stage = "register_insert";
-      const result = await env.DB.prepare("INSERT INTO fans(full_name,phone,password_hash) VALUES(?,?,?)")
-        .bind(name, phone, passwordHash).run();
+      const result = await env.DB.prepare("INSERT INTO fans(full_name,email,phone,password_hash) VALUES(?,?,?,?)")
+        .bind(name, email, phone, passwordHash).run();
       stage = "register_fetch";
       const fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,created_at FROM fans WHERE id=?")
         .bind(result.meta.last_row_id).first();
@@ -175,37 +179,40 @@ export async function onRequestPost({ request, env }) {
       return json({ success: true, token, user: safeUser(fan), message: "تم إنشاء حسابك بنجاح" }, 201);
     }
 
-    if (action === "profile") {
-      const session = await currentFan(request, env);
-      if (!session) return json({ success: false, message: "انتهت الجلسة، سجل الدخول مجدداً" }, 401);
-      const name = clean(body.name).replace(/\s+/g, " ");
+    if (action === "link") {
+      stage = "link_validate";
+      const email = clean(body.email).toLowerCase();
       const phone = validateFanPhone(body.phone);
-      if (name.split(" ").filter(Boolean).length !== 3) return json({ success: false, message: "اكتب اسمك الثلاثي كاملاً" }, 400);
-      if (!phone) return json({ success: false, message: "رقم الجوال غير صحيح أو يبدو رقماً وهمياً." }, 400);
-      let exists = null;
+      const password = String(body.password || "");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return json({ success: false, message: "أدخل بريداً إلكترونياً صحيحاً" }, 400);
+      if (!phone || !password) return json({ success: false, message: "أدخل رقم الهاتف وكلمة المرور الحالية للحساب السابق" }, 400);
+      stage = "link_lookup";
+      const emailExists = await env.DB.prepare("SELECT id FROM fans WHERE LOWER(email)=? LIMIT 1").bind(email).first();
+      if (emailExists) return json({ success: false, message: "هذا البريد مرتبط بحساب آخر بالفعل" }, 409);
+      let fan = null;
       for (const variant of legacyPhoneVariants(phone)) {
-        exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=? AND id<>?").bind(variant, session.row.id).first();
-        if (exists) break;
+        fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE phone=? LIMIT 1").bind(variant).first();
+        if (fan) break;
       }
-      if (exists) return json({ success: false, message: "هذا الرقم مسجل بالفعل لدى عضو آخر" }, 409);
-      await env.DB.prepare("UPDATE fans SET full_name=?,phone=? WHERE id=?").bind(name, phone, session.row.id).run();
-      const updated = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,created_at FROM fans WHERE id=?").bind(session.row.id).first();
-      return json({ success: true, user: safeUser(updated), message: "اكتملت عضويتك بنجاح" });
+      if (!fan || !fan.active || fan.email || !fan.password_hash || !await checkFanPassword(password, fan.password_hash)) {
+        return json({ success: false, message: "تعذر التحقق من الحساب السابق. تأكد من رقم الهاتف وكلمة المرور، أو استخدم بريد الحساب إن كان مرتبطاً به." }, 401);
+      }
+      stage = "link_update";
+      await env.DB.prepare("UPDATE fans SET email=? WHERE id=? AND (email IS NULL OR TRIM(email)='')").bind(email, fan.id).run();
+      const updated = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,created_at FROM fans WHERE id=?").bind(fan.id).first();
+      if (!updated?.email || updated.email.toLowerCase() !== email) return json({ success: false, message: "تعذر ربط البريد بهذا الحساب" }, 409);
+      const token = await createSession(env, fan.id);
+      return json({ success: true, token, user: safeUser(updated), message: "تم ربط بريدك بالحساب السابق بنجاح" });
     }
 
     if (action === "login") {
-      const phone = normalizePhone(body.phone);
+      const email = clean(body.email).toLowerCase();
       const password = String(body.password || "");
-      if (!phone || !password) return json({ success: false, message: "أدخل رقم الجوال وكلمة المرور" }, 400);
-      const variants = legacyPhoneVariants(phone);
-      let fan = null;
-      for (const variant of variants) {
-        fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE phone=?")
-          .bind(variant).first();
-        if (fan) break;
-      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password) return json({ success: false, message: "أدخل البريد الإلكتروني وكلمة المرور" }, 400);
+      const fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE LOWER(email)=? LIMIT 1")
+        .bind(email).first();
       if (!fan || !fan.active || !fan.password_hash || !await checkFanPassword(password, fan.password_hash)) {
-        return json({ success: false, message: "رقم الجوال أو كلمة المرور غير صحيحة" }, 401);
+        return json({ success: false, message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" }, 401);
       }
       const token = await createSession(env, fan.id);
       return json({ success: true, token, user: safeUser(fan), message: "مرحباً بعودتك" });
