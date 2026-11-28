@@ -173,9 +173,9 @@ export async function onRequestPost({ request, env }) {
       const session = await currentFan(request, env);
       if (!session) return json({ success: false, message: "انتهت الجلسة، سجل الدخول مجدداً" }, 401);
       const name = clean(body.name).replace(/\s+/g, " ");
-      const phone = normalizePhone(body.phone);
+      const phone = validateFanPhone(body.phone);
       if (name.split(" ").filter(Boolean).length !== 3) return json({ success: false, message: "اكتب اسمك الثلاثي كاملاً" }, 400);
-      if (!/^\+?[0-9]{7,15}$/.test(phone)) return json({ success: false, message: "رقم الجوال غير صحيح" }, 400);
+      if (!phone) return json({ success: false, message: "رقم الجوال غير صحيح أو يبدو رقماً وهمياً." }, 400);
       const exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=? AND id<>?").bind(phone, session.row.id).first();
       if (exists) return json({ success: false, message: "هذا الرقم مسجل بالفعل لدى عضو آخر" }, 409);
       await env.DB.prepare("UPDATE fans SET full_name=?,phone=? WHERE id=?").bind(name, phone, session.row.id).run();
