@@ -47,7 +47,29 @@ const CORS = {
 };
 const json = (data, status = 200) => Response.json(data, { status, headers: CORS });
 const clean = value => String(value ?? "").trim();
-const normalizePhone = value => clean(value).replace(/[\s()-]/g, "");
+const normalizePhone = value => {
+  let raw = clean(value).replace(/[\\s().-]/g, "").replace(/^00/, "+");
+  if (!raw.startsWith("+") && /^7[0-9]{8}$/.test(raw)) raw = "+967" + raw;
+  else if (!raw.startsWith("+") && /^967[0-9]{9}$/.test(raw)) raw = "+" + raw;
+  else if (!raw.startsWith("+") && /^[0-9]{7,15}$/.test(raw)) raw = "+" + raw;
+  return raw;
+};
+const validateFanPhone = value => {
+  const phone = normalizePhone(value);
+  if (!/^\\+[1-9][0-9]{6,14}$/.test(phone)) return null;
+  const digits = phone.slice(1);
+  const national = digits.replace(/^(?:1|7|20|27|30|31|32|33|34|36|39|40|41|43|44|45|46|47|48|49|51|52|53|54|55|56|57|58|60|61|62|63|64|65|66|81|82|84|86|90|91|92|93|94|95|98|211|212|213|216|218|220|221|222|223|224|225|226|227|228|229|230|231|232|233|234|235|236|237|238|239|240|241|242|243|244|245|246|248|249|250|251|252|253|254|255|256|257|258|260|261|262|263|264|265|266|267|268|269|290|291|297|298|299|350|351|352|353|354|355|356|357|358|359|370|371|372|373|374|375|376|377|378|380|381|382|383|385|386|387|389|420|421|423|500|501|502|503|504|505|506|507|508|509|590|591|592|593|594|595|596|597|598|599|670|672|673|674|675|676|677|678|679|680|681|682|683|685|686|687|688|689|690|691|692|850|852|853|855|856|880|886|960|961|962|963|964|965|966|967|968|970|971|972|973|974|975|976|977|992|993|994|995|996|998)/, "");
+  if (!national || national.length < 7 || national.length > 12) return null;
+  if (/^(.)\\1+$/.test(national) || /^(0123456789|1234567890|9876543210|0987654321)$/.test(national)) return null;
+  if (phone.startsWith("+967") && !/^7[0-9]{8}$/.test(phone.slice(4))) return null;
+  if (phone.startsWith("+966") && !/^5[0-9]{8}$/.test(phone.slice(4))) return null;
+  if (phone.startsWith("+971") && !/^5[0-9]{8}$/.test(phone.slice(4))) return null;
+  if (phone.startsWith("+20") && !/^1[0-9]{9}$/.test(phone.slice(3))) return null;
+  if (phone.startsWith("+91") && !/^[6-9][0-9]{9}$/.test(phone.slice(3))) return null;
+  if (phone.startsWith("+1") && !/^[2-9][0-9]{2}[2-9][0-9]{6}$/.test(phone.slice(2))) return null;
+  return phone;
+};
+const legacyPhoneVariants = phone => [...new Set([phone, phone.slice(1), phone.replace(/^\\+967/, "7")])];
 const safeUser = row => ({
   id: row.id,
   name: row.full_name,
@@ -126,7 +148,7 @@ export async function onRequestPost({ request, env }) {
     if (action === "register") {
       stage = "register_validate";
       const name = clean(body.name).slice(0, 80);
-      const phone = normalizePhone(body.phone);
+      const phone = validateFanPhone(body.phone);
       const password = String(body.password || "");
       if (name.split(/\s+/).filter(Boolean).length !== 3) return json({ success: false, message: "اكتب اسمك الثلاثي" }, 400);
       if (!/^\+?[0-9]{7,15}$/.test(phone)) return json({ success: false, message: "رقم الجوال غير صحيح، أدخل الرقم مع مفتاح الدولة عند الحاجة" }, 400);
@@ -165,8 +187,13 @@ export async function onRequestPost({ request, env }) {
       const phone = normalizePhone(body.phone);
       const password = String(body.password || "");
       if (!phone || !password) return json({ success: false, message: "أدخل رقم الجوال وكلمة المرور" }, 400);
-      const fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE phone=?")
-        .bind(phone).first();
+      const variants = legacyPhoneVariants(phone);
+      let fan = null;
+      for (const variant of variants) {
+        fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE phone=?")
+          .bind(variant).first();
+        if (fan) break;
+      }
       if (!fan || !fan.active || !fan.password_hash || !await checkFanPassword(password, fan.password_hash)) {
         return json({ success: false, message: "رقم الجوال أو كلمة المرور غير صحيحة" }, 401);
       }
