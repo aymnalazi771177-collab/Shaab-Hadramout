@@ -208,9 +208,23 @@ export async function onRequestPost({ request, env }) {
     if (action === "login") {
       const email = clean(body.email).toLowerCase();
       const password = String(body.password || "");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password) return json({ success: false, message: "أدخل البريد الإلكتروني وكلمة المرور" }, 400);
-      const fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE LOWER(email)=? LIMIT 1")
-        .bind(email).first();
+      if (!password) return json({ success: false, message: "أدخل كلمة المرور" }, 400);
+      let fan = null;
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE LOWER(email)=? LIMIT 1")
+          .bind(email).first();
+      } else if (body.phone) {
+        // Compatibility for already-installed older app builds only.
+        // The current app interface uses email + password exclusively.
+        const legacyPhone = normalizePhone(body.phone);
+        for (const variant of legacyPhoneVariants(legacyPhone)) {
+          fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,password_hash,active,created_at FROM fans WHERE phone=? LIMIT 1")
+            .bind(variant).first();
+          if (fan) break;
+        }
+      } else {
+        return json({ success: false, message: "أدخل البريد الإلكتروني وكلمة المرور" }, 400);
+      }
       if (!fan || !fan.active || !fan.password_hash || !await checkFanPassword(password, fan.password_hash)) {
         return json({ success: false, message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" }, 401);
       }
