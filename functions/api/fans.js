@@ -147,6 +147,32 @@ export async function onRequestPost({ request, env }) {
     const body = await request.json();
     const action = clean(body.action);
 
+    if (action === "profile") {
+      stage = "profile_session";
+      const session = await currentFan(request, env);
+      if (!session) return json({ success: false, message: "انتهت جلسة الدخول عبر Google. سجل الدخول مجدداً." }, 401);
+      const name = clean(body.name).replace(/\s+/g, " ").slice(0, 80);
+      const phone = validateFanPhone(body.phone);
+      const password = String(body.password || "");
+      if (name.split(/\s+/).filter(Boolean).length !== 3) return json({ success: false, message: "اكتب اسمك الثلاثي" }, 400);
+      if (!phone) return json({ success: false, message: "رقم الهاتف غير صحيح" }, 400);
+      if (password.length < 8 || password.length > 128) return json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }, 400);
+      stage = "profile_phone_lookup";
+      let duplicate = null;
+      for (const variant of legacyPhoneVariants(phone)) {
+        duplicate = await env.DB.prepare("SELECT id FROM fans WHERE phone=? AND id<>? LIMIT 1").bind(variant, session.row.id).first();
+        if (duplicate) break;
+      }
+      if (duplicate) return json({ success: false, message: "رقم الهاتف مرتبط بحساب آخر" }, 409);
+      stage = "profile_hash";
+      const passwordHash = await makeFanPasswordHash(password);
+      stage = "profile_update";
+      await env.DB.prepare("UPDATE fans SET full_name=?,phone=?,password_hash=CASE WHEN password_hash IS NULL OR password_hash='' THEN ? ELSE password_hash END WHERE id=?")
+        .bind(name, phone, passwordHash, session.row.id).run();
+      const fan = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,created_at FROM fans WHERE id=?").bind(session.row.id).first();
+      return json({ success: true, token: session.token, user: safeUser(fan), message: "تم استكمال بيانات العضوية وحفظ كلمة المرور" });
+    }
+
     if (action === "register") {
       stage = "register_validate";
       const name = clean(body.name).replace(/\s+/g, " ").slice(0, 80);
