@@ -154,7 +154,11 @@ export async function onRequestPost({ request, env }) {
       if (!phone) return json({ success: false, message: "رقم الجوال غير صحيح أو يبدو رقماً وهمياً. اختر مفتاح الدولة وأدخل رقماً صحيحاً." }, 400);
       if (password.length < 8 || password.length > 128) return json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }, 400);
       stage = "register_lookup";
-      const exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=?").bind(phone).first();
+      let exists = null;
+      for (const variant of legacyPhoneVariants(phone)) {
+        exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=?").bind(variant).first();
+        if (exists) break;
+      }
       if (exists) return json({ success: false, message: "رقم الجوال مسجل مسبقاً، سجل الدخول بدلاً من إنشاء حساب جديد" }, 409);
       stage = "register_hash";
       const passwordHash = await makeFanPasswordHash(password);
@@ -176,7 +180,11 @@ export async function onRequestPost({ request, env }) {
       const phone = validateFanPhone(body.phone);
       if (name.split(" ").filter(Boolean).length !== 3) return json({ success: false, message: "اكتب اسمك الثلاثي كاملاً" }, 400);
       if (!phone) return json({ success: false, message: "رقم الجوال غير صحيح أو يبدو رقماً وهمياً." }, 400);
-      const exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=? AND id<>?").bind(phone, session.row.id).first();
+      let exists = null;
+      for (const variant of legacyPhoneVariants(phone)) {
+        exists = await env.DB.prepare("SELECT id FROM fans WHERE phone=? AND id<>?").bind(variant, session.row.id).first();
+        if (exists) break;
+      }
       if (exists) return json({ success: false, message: "هذا الرقم مسجل بالفعل لدى عضو آخر" }, 409);
       await env.DB.prepare("UPDATE fans SET full_name=?,phone=? WHERE id=?").bind(name, phone, session.row.id).run();
       const updated = await env.DB.prepare("SELECT id,full_name,phone,email,google_sub,created_at FROM fans WHERE id=?").bind(session.row.id).first();
